@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-class WebView(QWebView):
+class WebView(QWebEngineView):
     """docstring for WebView."""
     def __init__(self, main_window, x, y, width, heigth):
         super(WebView, self).__init__(main_window)
