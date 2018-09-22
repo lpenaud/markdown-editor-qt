@@ -2,13 +2,18 @@
 Markdown Editor
 ##################
 
-A Markdown editor
+A Markdown editor.
 
-******************
-OS Requirements
-******************
+**Advices :**
 
-- ``sudo pacman -S python-qtpy``
+- Create a virtual environments with ``python -m venv <name of venv>``
+- Activate your virtual environment :
+    - On GNU/Linux ``source <name of venv>/bin/activate``
+    - On Windows ``<name of venv>/Scripts/activate.bat``
+- Install all dependencies : ``make``
+- To launch : ``python markdown-editor``
+- To freeze : ``pyinstaller pyinstaller.spec``
+- To launch the frozen application : ``dist/Markdown-Editor/Markdown-Editor``
 
 *****************
 TODO
