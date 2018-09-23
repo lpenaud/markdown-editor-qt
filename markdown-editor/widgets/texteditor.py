@@ -10,4 +10,11 @@ class TextEditor(QPlainTextEdit):
         self.insertPlainText('You can write here.\n')
         self.move(x,y)
         self.resize(width,heigth)
-        self.canPaste = True
+
+    @property
+    def text_content(self):
+        return self.toPlainText()
+
+    @text_content.setter
+    def text_content(self, text_content):
+        self.setPlainText(text_content)
