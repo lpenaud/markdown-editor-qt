@@ -10,9 +10,9 @@ class TextEditor(QPlainTextEdit):
         self.insertPlainText('You can write here.\n')
 
     @property
-    def text_content(self):
+    def textContent(self):
         return self.toPlainText()
 
-    @text_content.setter
-    def text_content(self, text_content):
-        self.setPlainText(text_content)
+    @textContent.setter
+    def textContent(self, textContent):
+        self.setPlainText(textContent)
