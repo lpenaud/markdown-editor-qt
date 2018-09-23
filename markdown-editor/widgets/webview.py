@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtCore import QUrl
 
 class WebView(QWebEngineView):
     """docstring for WebView."""
-    def __init__(self, main_window, x, y, width, heigth):
-        super(WebView, self).__init__(main_window)
-        self.move(x, y)
-        self.resize(width, heigth)
+    def __init__(self):
+        super(WebView, self).__init__()
         self._html = ''
 
     @property
@@ -19,3 +18,11 @@ class WebView(QWebEngineView):
     def html(self, html):
         self._html = html
         self.setHtml(html)
+
+    @property
+    def url(self):
+        return super(WebView, self).url().toString()
+
+    @url.setter
+    def url(self, url):
+        self.setUrl(QUrl(url))
