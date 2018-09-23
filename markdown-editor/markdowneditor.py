@@ -3,6 +3,7 @@
 
 import sys
 import widgets
+import dialogs
 from PyQt5.Qt import QApplication, QBoxLayout
 
 
@@ -11,6 +12,7 @@ class MarkdownEditor(widgets.MainWindow):
     def __init__(self):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         self._box = widgets.Box(QBoxLayout.LeftToRight)
+        self._textFileChooser = dialogs.TextFileChooser(self)
 
         self._toolbar = widgets.ToolBar()
         self._toolbar.addAction('document-new', 'New document', self.triggeredNewDocument)
@@ -36,6 +38,29 @@ class MarkdownEditor(widgets.MainWindow):
 
         self.setCentralWidget(self._box)
 
+    def saveDocument(self, forceAs = False):
+        writable = False
+        self._textFileChooser.mode = 'w'
+
+        if not(self._textEditor.textContent.endswith('\n')):
+            self._textEditor.appendPlainText('')
+
+        if self._textFileChooser.pathname.is_dir() or forceAs:
+            response = self._textFileChooser.exec_()
+            if dialogs.isAccepted(response):
+                writable = True
+        else:
+            writable = True
+
+        if writable:
+            self._textFileChooser.writeText(self._textEditor.textContent)
+
+    def openDocument(self):
+        self._textFileChooser.mode = 'r'
+        response = self._textFileChooser.exec_()
+        if dialogs.isAccepted(response):
+            self._textEditor.textContent = self._textFileChooser.readText()
+
     def onTextChanged(self):
         template = '<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="utf-8"><title>Hello world</title></head><body><pre>{}</pre></body></html>'
         self._webview.html = template.format(self._textEditor.textContent)
@@ -57,12 +82,17 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredNewDocument(self):
         self._textEditor.clear()
+        self._textFileChooser.pathname = None
 
     def triggeredOpenDocument(self):
-        print('triggeredOpenDocument')
+        self.openDocument()
+
+    def triggeredSaveAsDocument(self):
+        self.saveDocument(forceAs = True)
 
     def triggeredSaveDocument(self):
-        print('triggeredSaveDocument')
+        self.saveDocument()
+
 
 def main():
     app = QApplication(sys.argv)
