@@ -1,10 +1,9 @@
 
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QSize
 
 class MainWindow(QMainWindow):
     """docstring for MainWindow."""
-    def __init__(self, title, min_x, min_y):
+    def __init__(self, title, minw, minh):
         super(MainWindow, self).__init__()
         self.setWindowTitle(title)
-        self.setMinimumSize(QSize(min_x, min_y))
+        self.setMinimumSize(minw, minh)
