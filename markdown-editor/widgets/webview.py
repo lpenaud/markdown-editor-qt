@@ -9,4 +9,13 @@ class WebView(QWebEngineView):
         super(WebView, self).__init__(main_window)
         self.move(x, y)
         self.resize(width, heigth)
-        self.setHtml('<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="utf-8"><title>Hello world</title></head><body><pre>{}</pre></body></html>'.format('Hello world!'))
+        self._html = ''
+
+    @property
+    def html(self):
+        return self._html
+
+    @html.setter
+    def html(self, html):
+        self._html = html
+        self.setHtml(html)
