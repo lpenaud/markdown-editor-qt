@@ -6,7 +6,9 @@ block_cipher = None
 
 added_files = [
     ('README.rst', '.'),
-    ('LICENSE', '.')
+    ('LICENSE', '.'),
+    ('example', 'example'),
+    ('template', 'template')
 ]
 
 a = Analysis(['markdown-editor/__main__.py'],
@@ -30,7 +32,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

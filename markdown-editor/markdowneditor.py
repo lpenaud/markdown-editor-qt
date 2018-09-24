@@ -2,22 +2,41 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from PyQt5.Qt import QApplication, QBoxLayout
+from PyQt5 import QtCore
 import widgets
 import dialogs
-from PyQt5.Qt import QApplication, QBoxLayout
-
+import threads
+import utils
+from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
     def __init__(self):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
+        tmpfile = utils.mktemp(suffix = '.html')
         self._box = widgets.Box(QBoxLayout.LeftToRight)
         self._textFileChooser = dialogs.TextFileChooser(self)
+        self.pathnameSrc = None
+
+        pandocKargs = {
+            'template': str(utils.joinpath_to_cwd('template', 'default.html')),
+            'lang': 'en',
+            'inline_css': utils.joinpath_to_cwd('template', 'default.css').read_text(),
+            'toc': True,
+            'toc_title': True
+        }
+        self.pandoc = Pandoc('markdown','html5', **pandocKargs)
+        self._thread = threads.PandocThread(self, tmpfile)
+        self._threadRunning = False
 
         self._toolbar = widgets.ToolBar()
         self._toolbar.addAction('document-new', 'New document', self.triggeredNewDocument)
         self._toolbar.addAction('document-open', 'Open document', self.triggeredOpenDocument)
         self._toolbar.addAction('document-save', 'Save document', self.triggeredSaveDocument)
+        self._toolbar.addAction('document-save-as', 'Save document as', self.triggeredSaveAsDocument)
+        self._toolbar.addAction('document-print', 'Export in html', self.triggeredExport)
+        self._toolbar.addAction('document-print-preview', 'Preview', self.triggeredPreview)
         self._toolbar.addSeparator()
         self._toolbar.addAction('edit-cut', 'Cut', self.triggeredCut)
         self._toolbar.addAction('edit-copy', 'Copy', self.triggeredCopy)
@@ -27,14 +46,15 @@ class MarkdownEditor(widgets.MainWindow):
         self._toolbar.addAction('edit-redo', 'Redo', self.triggeredRedo)
         self.addToolBar(self._toolbar)
 
-        self._textEditor = widgets.TextEditor()
-        self._textEditor.textChanged.connect(self.onTextChanged)
+        self.textEditor = widgets.TextEditor(utils.joinpath_to_cwd('example', 'example.md').read_text())
+        self.textEditor.timeout.connect(self.triggeredTextTimeout)
 
-        self._webview = widgets.WebView()
-        self.onTextChanged()
+        self.webview = widgets.WebView()
+        self.triggeredPreview()
+        self.webview.url = tmpfile.as_uri()
 
-        self._box.addWidget(self._textEditor)
-        self._box.addWidget(self._webview)
+        self._box.addWidget(self.textEditor)
+        self._box.addWidget(self.webview)
 
         self.setCentralWidget(self._box)
 
@@ -42,47 +62,47 @@ class MarkdownEditor(widgets.MainWindow):
         writable = False
         self._textFileChooser.mode = 'w'
 
-        if not(self._textEditor.textContent.endswith('\n')):
-            self._textEditor.appendPlainText('')
+        if not(self.textEditor.textContent.endswith('\n')):
+            self.textEditor.appendPlainText('')
 
-        if self._textFileChooser.pathname.is_dir() or forceAs:
-            response = self._textFileChooser.exec_()
-            if dialogs.isAccepted(response):
+        if not(self.pathnameSrc) or forceAs:
+            if dialogs.isAccepted(self._textFileChooser.exec_()):
+                self.pathnameSrc = self._textFileChooser.pathname
                 writable = True
         else:
             writable = True
 
         if writable:
-            self._textFileChooser.writeText(self._textEditor.textContent)
+            self.pathnameSrc.write_text(self.textEditor.textContent)
 
     def openDocument(self):
         self._textFileChooser.mode = 'r'
         response = self._textFileChooser.exec_()
         if dialogs.isAccepted(response):
-            self._textEditor.textContent = self._textFileChooser.readText()
+            self.textEditor.textContent = self._textFileChooser.readText()
+            self.pathnameSrc = self._textFileChooser.pathname
 
-    def onTextChanged(self):
-        template = '<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="utf-8"><title>Hello world</title></head><body><pre>{}</pre></body></html>'
-        self._webview.html = template.format(self._textEditor.textContent)
+    def triggeredTextTimeout(self):
+        self.triggeredPreview()
 
     def triggeredPaste(self):
-        self._textEditor.paste()
+        self.textEditor.paste()
 
     def triggeredCopy(self):
-        self._textEditor.copy()
+        self.textEditor.copy()
 
     def triggeredCut(self):
-        self._textEditor.cut()
+        self.textEditor.cut()
 
     def triggeredUndo(self):
-        self._textEditor.undo()
+        self.textEditor.undo()
 
     def triggeredRedo(self):
-        self._textEditor.redo()
+        self.textEditor.redo()
 
     def triggeredNewDocument(self):
-        self._textEditor.clear()
-        self._textFileChooser.pathname = None
+        self.textEditor.clear()
+        self.pathnameSrc = None
 
     def triggeredOpenDocument(self):
         self.openDocument()
@@ -92,6 +112,17 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredSaveDocument(self):
         self.saveDocument()
+
+    def triggeredPreview(self):
+        self._thread.start()
+
+    def cbPandocThread(self):
+        self.webview.reload()
+
+    def triggeredExport(self):
+        self.saveDocument()
+        if dialogs.isAccepted(self._textFileChooser.exec_()):
+            self.pandoc.convert_file(str(self.pathnameSrc), str(self._textFileChooser.pathname))
 
 
 def main():
