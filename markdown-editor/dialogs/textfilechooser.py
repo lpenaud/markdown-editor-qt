@@ -10,12 +10,12 @@ class TextFileChooser(QFileDialog):
     """docstring for TextFileChooser."""
     def __init__(self, parent):
         super(TextFileChooser, self).__init__(parent)
-        filter = ["Text file (*.md *.markdown *.rst *.txt)", "All files (*.*)"]
-        self.setNameFilters(filter)
-        self.selectNameFilter(filter[0])
+        self._filters = ["Markdown file (*.md)", "Html file (*.html)", "All files (*.*)"]
+        self.setNameFilters(self._filters)
+        self.selectNameFilter(self._filters[0])
         self.pathname = Path.home()
         self.mode = 'r'
-        self.encoding = 'utf_8'
+        self.encoding = 'utf8'
 
     @property
     def pathname(self):
@@ -58,7 +58,17 @@ class TextFileChooser(QFileDialog):
             raise ValueError('{} code is unknown'.format(encoding))
         self._encoding = encoding
 
+    @property
+    def filter(self):
+        return self._filters.copy()
+
+    @filter.setter
+    def filter(self, filters):
+        self._filters = filters
+
     def exec_(self):
+        if self.mode == 'w':
+            self.selectFile(str(self.pathname.joinpath('New document.{}'.format(self.defaultSuffix()))))
         response = super(TextFileChooser, self).exec_()
         if isAccepted(response):
             self.pathname = self.selectedFiles()[0]
@@ -73,3 +83,17 @@ class TextFileChooser(QFileDialog):
 
     def readText(self):
         return self.pathname.read_text(encoding=self.encoding)
+
+    def addFilter(self, filter):
+        self._filters.append(filter)
+        self.setNameFilters(self._filters)
+        self.selectNameFilter(self._filters[0])
+
+    def addFilters(self, filters):
+        self._filters.extend(filters)
+        self.setNameFilter(filters)
+        self.selectNameFilter(self._filters[0])
+
+    def setDefaultFilter(self, index):
+        self.selectNameFilter(self._filters[index])
+        self.setDefaultSuffix(self._filters[index].split('(')[1][2:-1])

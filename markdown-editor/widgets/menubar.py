@@ -24,7 +24,7 @@ class MenuBar(QMenuBar):
                 return i
         return -1
 
-    def addActionToMenu(self, menuTitle, text, cb, sequenceFormat = None, iconName = None):
+    def addNewActionToMenu(self, menuTitle, text, cb, keysequence = None, iconName = None):
         iMenu = self.findIndexMenu(menuTitle)
         if iMenu == -1:
             raise ValueError('Unknown menu')
@@ -33,14 +33,32 @@ class MenuBar(QMenuBar):
         self._actions[iAction].setText(text)
         self._actions[iAction].setToolTip(text)
         self._actions[iAction].triggered.connect(cb)
-        if sequenceFormat:
-            self._actions[iAction].setShortcut(QKeySequence(sequenceFormat))
+        if keysequence:
+            self._actions[iAction].setShortcut(QKeySequence(keysequence))
         if iconName:
             self._actions[iAction].setIcon(QIcon.fromTheme(iconName))
         self._menus[iMenu].addAction(self._actions[iAction])
+
+    def addActionToMenu(self, menuTitle, action):
+        iMenu = self.findIndexMenu(menuTitle)
+        if iMenu == -1:
+            raise ValueError('Unknown menu')
+        self._menus[iMenu].addAction(action)
+
+    def addActionsToMenu(self, menuTitle, actions):
+        iMenu = self.findIndexMenu(menuTitle)
+        if iMenu == -1:
+            raise ValueError('Unknown menu')
+        self._menus[iMenu].addActions(actions)
 
     def addSeparatorToMenu(self, menuTitle):
         iMenu = self.findIndexMenu(menuTitle)
         if iMenu == -1:
             raise ValueError('Unknown menu')
         self._menus[iMenu].addSeparator()
+
+    def insertSeparatorToMenu(self, menuTitle, actionBefore):
+        iMenu = self.findIndexMenu(menuTitle)
+        if iMenu == -1:
+            raise ValueError('Unknown menu')
+        self._menus[iMenu].insertSeparator(actionBefore)

@@ -9,7 +9,7 @@ class ToolBar(QToolBar):
         super(ToolBar, self).__init__()
         self._actions = []
 
-    def addAction(self, text, cb, iconName = None):
+    def addNewAction(self, text, cb, iconName = None):
         self._actions.append(QAction())
         index = len(self._actions) - 1
         self._actions[index].setText(text)
@@ -17,4 +17,4 @@ class ToolBar(QToolBar):
         self._actions[index].triggered.connect(cb)
         if iconName:
             self._actions[index].setIcon(QIcon.fromTheme(iconName))
-        super(ToolBar, self).addAction(self._actions[index])
+        self.addAction(self._actions[index])

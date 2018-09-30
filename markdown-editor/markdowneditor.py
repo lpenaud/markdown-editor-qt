@@ -8,6 +8,7 @@ import widgets
 import dialogs
 import threads
 import helpers
+import object
 from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
@@ -18,6 +19,18 @@ class MarkdownEditor(widgets.MainWindow):
         self._box = widgets.Box(QBoxLayout.LeftToRight)
         self._textFileChooser = dialogs.TextFileChooser(self)
         self.pathnameSrc = None
+
+        self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
+        self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
+        self.addAction('file-document-save', object.Action('Save document', self.triggeredSaveDocument, 'Ctrl+S', 'document-save'))
+        self.addAction('file-document-save-as', object.Action('Save document as', self.triggeredSaveAsDocument, 'Ctrl+Shift+S', 'document-save-as'))
+        self.addAction('file-export-html', object.Action('Export in html', self.triggeredExport))
+        self.addAction('edit-undo', object.Action('Undo', self.triggeredUndo, 'Ctrl+Z', 'edit-undo'))
+        self.addAction('edit-redo', object.Action('Redo', self.triggeredRedo, 'Ctrl+Y', 'edit-redo'))
+        self.addAction('edit-cut', object.Action('Cut', self.triggeredCut, 'Ctrl+X', 'edit-cut'))
+        self.addAction('edit-copy', object.Action('Copy', self.triggeredCopy, 'Ctrl+C', 'edit-copy'))
+        self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
+        self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
 
         pandocKargs = {
             'template': str(helpers.joinpath_to_cwd('template', 'default.html')),
@@ -31,39 +44,23 @@ class MarkdownEditor(widgets.MainWindow):
         self._threadRunning = False
 
         self._menubar = widgets.MenuBar()
-        self._menubar.appendMenu('Files')
-        self._menubar.addActionToMenu('Files', 'New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new')
-        self._menubar.addActionToMenu('Files', 'Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open')
-        self._menubar.addSeparatorToMenu('Files')
-        self._menubar.addActionToMenu('Files', 'Save document', self.triggeredSaveDocument, 'Ctrl+S', 'document-save')
-        self._menubar.addActionToMenu('Files', 'Save document as', self.triggeredSaveAsDocument, 'Ctrl+Shift+S', 'document-save-as')
-        self._menubar.addSeparatorToMenu('Files')
-        self._menubar.addActionToMenu('Files', 'Export in html', self.triggeredExport)
+        self._menubar.appendMenu('File')
+        self._menubar.addActionsToMenu('File', self.findActionsLike('file'))
+        self._menubar.insertSeparatorToMenu('File', self.actions['file-document-save'])
+        self._menubar.insertSeparatorToMenu('File', self.actions['file-export-html'])
         self._menubar.appendMenu('Edit')
-        self._menubar.addActionToMenu('Edit', 'Undo', self.triggeredUndo, 'Ctrl+Z', 'edit-undo')
-        self._menubar.addActionToMenu('Edit', 'Redo', self.triggeredRedo, 'Ctrl+Y', 'edit-redo')
-        self._menubar.addSeparatorToMenu('Edit')
-        self._menubar.addActionToMenu('Edit', 'Cut', self.triggeredCut, 'Ctrl+X', 'edit-cut')
-        self._menubar.addActionToMenu('Edit', 'Copy', self.triggeredCopy, 'Ctrl+C', 'edit-copy')
-        self._menubar.addActionToMenu('Edit', 'Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste')
+        self._menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
+        self._menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
         self._menubar.appendMenu('View')
-        self._menubar.addActionToMenu('View', 'Refresh Preview', self.triggeredPreview)
+        self._menubar.addActionToMenu('View', self.actions['view-refresh'])
         self.setMenuBar(self._menubar)
 
         self._toolbar = widgets.ToolBar()
-        self._toolbar.addAction('New document', self.triggeredNewDocument, 'document-new')
-        self._toolbar.addAction('Open document', self.triggeredOpenDocument, 'document-open')
-        self._toolbar.addAction('Save document', self.triggeredSaveDocument, 'document-save')
-        self._toolbar.addAction('Save document as', self.triggeredSaveAsDocument, 'document-save-as')
-        self._toolbar.addAction('Export in html', self.triggeredExport)
-        self._toolbar.addAction('Refresh Preview', self.triggeredPreview)
-        self._toolbar.addSeparator()
-        self._toolbar.addAction('Cut', self.triggeredCut, 'edit-cut',)
-        self._toolbar.addAction('Copy', self.triggeredCopy, 'edit-copy')
-        self._toolbar.addAction('Paste', self.triggeredPaste, 'edit-paste')
-        self._toolbar.addSeparator()
-        self._toolbar.addAction('Undo', self.triggeredUndo, 'edit-undo')
-        self._toolbar.addAction('Redo', self.triggeredRedo, 'edit-redo')
+        self._toolbar.addActions(self.actions.values())
+        self._toolbar.insertSeparator(self.actions['file-export-html'])
+        self._toolbar.insertSeparator(self.actions['edit-cut'])
+        self._toolbar.insertSeparator(self.actions['edit-undo'])
+        self._toolbar.insertSeparator(self.actions['view-refresh'])
         self.addToolBar(self._toolbar)
 
         self.textEditor = widgets.TextEditor(helpers.joinpath_to_cwd('example', 'example.md').read_text())
@@ -86,6 +83,8 @@ class MarkdownEditor(widgets.MainWindow):
             self.textEditor.appendPlainText('')
 
         if not(self.pathnameSrc) or forceAs:
+            self._textFileChooser.setDefaultFilter(0)
+            self._textFileChooser.setWindowTitle('Save file')
             if dialogs.isAccepted(self._textFileChooser.exec_()):
                 self.pathnameSrc = self._textFileChooser.pathname
                 writable = True
@@ -141,8 +140,11 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredExport(self):
         self.saveDocument()
-        if dialogs.isAccepted(self._textFileChooser.exec_()):
-            self.pandoc.convert_file(str(self.pathnameSrc), str(self._textFileChooser.pathname))
+        if self.pathnameSrc:
+            self._textFileChooser.setDefaultFilter(1)
+            self._textFileChooser.setWindowTitle('Export html')
+            if dialogs.isAccepted(self._textFileChooser.exec_()):
+                self.pandoc.convert_file(str(self.pathnameSrc), str(self._textFileChooser.pathname))
 
 
 def main():
