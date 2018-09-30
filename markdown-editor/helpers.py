@@ -5,7 +5,8 @@ from encodings.aliases import aliases
 from pathlib import Path
 import tempfile
 
-codes = set(aliases.values())
+def check_if_encoding_exist(encoding):
+    return encoding in aliases.keys() or encoding in aliases.values()
 
 def joinpath(root, *other):
     return Path.joinpath(root, *other)

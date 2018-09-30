@@ -53,10 +53,10 @@ class TextFileChooser(QFileDialog):
         return self._encoding
 
     @encoding.setter
-    def encoding(self, code):
-        if not(code in helpers.codes):
-            raise ValueError('{} code is unknown'.format(code))
-        self._encoding = code
+    def encoding(self, encoding):
+        if not(helpers.check_if_encoding_exist(encoding)):
+            raise ValueError('{} code is unknown'.format(encoding))
+        self._encoding = encoding
 
     def exec_(self):
         response = super(TextFileChooser, self).exec_()
