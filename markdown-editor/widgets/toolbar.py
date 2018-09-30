@@ -7,16 +7,14 @@ class ToolBar(QToolBar):
     """docstring for ToolBar."""
     def __init__(self):
         super(ToolBar, self).__init__()
-        self._items = []
+        self._actions = []
 
-    def addAction(self, icon_name, text, cb):
-        self._items.append({
-            'icon': QIcon.fromTheme(icon_name),
-            'action': QAction()
-        })
-        item = self._items[len(self._items) - 1]
-        item['action'].setIcon(item['icon'])
-        item['action'].setText(text)
-        item['action'].setToolTip(text)
-        item['action'].triggered.connect(cb)
-        super(ToolBar, self).addAction(item['action'])
+    def addAction(self, text, cb, iconName = None):
+        self._actions.append(QAction())
+        index = len(self._actions) - 1
+        self._actions[index].setText(text)
+        self._actions[index].setToolTip(text)
+        self._actions[index].triggered.connect(cb)
+        if iconName:
+            self._actions[index].setIcon(QIcon.fromTheme(iconName))
+        super(ToolBar, self).addAction(self._actions[index])

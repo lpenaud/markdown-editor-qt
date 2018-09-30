@@ -3,7 +3,7 @@
 
 from PyQt5.Qt import QFileDialog
 from pathlib import Path
-from .utils import isAccepted, isRejected
+from .helpers import isAccepted, isRejected
 import helpers
 
 class TextFileChooser(QFileDialog):
@@ -54,7 +54,7 @@ class TextFileChooser(QFileDialog):
 
     @encoding.setter
     def encoding(self, code):
-        if not(code in utils.codes):
+        if not(code in helpers.codes):
             raise ValueError('{} code is unknown'.format(code))
         self._encoding = code
 

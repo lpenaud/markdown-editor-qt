@@ -1,3 +1,3 @@
 
 from .textfilechooser import TextFileChooser
-from .utils import isAccepted, isRejected
+from .helpers import isAccepted, isRejected
