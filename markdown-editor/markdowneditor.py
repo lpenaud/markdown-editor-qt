@@ -7,22 +7,22 @@ from PyQt5 import QtCore
 import widgets
 import dialogs
 import threads
-import utils
+import helpers
 from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
     def __init__(self):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
-        tmpfile = utils.mktemp(suffix = '.html')
+        tmpfile = helpers.mktemp(suffix = '.html')
         self._box = widgets.Box(QBoxLayout.LeftToRight)
         self._textFileChooser = dialogs.TextFileChooser(self)
         self.pathnameSrc = None
 
         pandocKargs = {
-            'template': str(utils.joinpath_to_cwd('template', 'default.html')),
+            'template': str(helpers.joinpath_to_cwd('template', 'default.html')),
             'lang': 'en',
-            'inline_css': utils.joinpath_to_cwd('template', 'default.css').read_text(),
+            'inline_css': helpers.joinpath_to_cwd('template', 'default.css').read_text(),
             'toc': True,
             'toc_title': True
         }
@@ -46,7 +46,7 @@ class MarkdownEditor(widgets.MainWindow):
         self._toolbar.addAction('edit-redo', 'Redo', self.triggeredRedo)
         self.addToolBar(self._toolbar)
 
-        self.textEditor = widgets.TextEditor(utils.joinpath_to_cwd('example', 'example.md').read_text())
+        self.textEditor = widgets.TextEditor(helpers.joinpath_to_cwd('example', 'example.md').read_text())
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
 
         self.webview = widgets.WebView()

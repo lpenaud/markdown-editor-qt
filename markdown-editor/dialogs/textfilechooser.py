@@ -4,7 +4,7 @@
 from PyQt5.Qt import QFileDialog
 from pathlib import Path
 from .utils import isAccepted, isRejected
-import utils
+import helpers
 
 class TextFileChooser(QFileDialog):
     """docstring for TextFileChooser."""
