@@ -4,6 +4,7 @@
 from encodings.aliases import aliases
 from pathlib import Path
 import tempfile
+import locale
 
 def check_if_encoding_exist(encoding):
     return encoding in aliases.keys() or encoding in aliases.values()
@@ -22,3 +23,7 @@ def local_uri_to_path(uri):
 
 def mktemp(suffix = '', prefix=tempfile.template, dir=None):
     return Path(tempfile.mktemp(suffix, prefix, dir))
+
+def get_lang():
+    return locale.getdefaultlocale()[0].split('_')[0]
+

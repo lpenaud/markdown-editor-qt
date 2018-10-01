@@ -34,7 +34,7 @@ class MarkdownEditor(widgets.MainWindow):
 
         pandocKargs = {
             'template': str(helpers.joinpath_to_cwd('template', 'default.html')),
-            'lang': 'en',
+            'lang': helpers.get_lang(),
             'inline_css': helpers.joinpath_to_cwd('template', 'default.css').read_text(),
             'toc': True,
             'toc_title': True
