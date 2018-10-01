@@ -27,3 +27,8 @@ def mktemp(suffix = '', prefix=tempfile.template, dir=None):
 def get_lang():
     return locale.getdefaultlocale()[0].split('_')[0]
 
+def find_index(iterable, value):
+    for i in range(0, len(iterable)):
+        if iterable[i] == value:
+            return i
+    return -1
