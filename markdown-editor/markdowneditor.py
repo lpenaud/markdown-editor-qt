@@ -13,12 +13,14 @@ from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
-    def __init__(self):
+    def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         tmpfile = helpers.mktemp(suffix = '.html')
+        defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
+        tmpPath = defaultPath if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
         self._box = widgets.Box(QBoxLayout.LeftToRight)
         self._textFileChooser = dialogs.TextFileChooser(self)
-        self.pathnameSrc = None
+        self.pathnameSrc = tmpPath if tmpPath.is_file() else defaultPath
 
         self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
         self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
@@ -63,8 +65,9 @@ class MarkdownEditor(widgets.MainWindow):
         self._toolbar.insertSeparator(self.actions['view-refresh'])
         self.addToolBar(self._toolbar)
 
-        self.textEditor = widgets.TextEditor(helpers.joinpath_to_cwd('example', 'example.md').read_text())
+        self.textEditor = widgets.TextEditor()
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
+        self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
 
         self.webview = widgets.WebView()
         self.triggeredPreview()
@@ -148,8 +151,18 @@ class MarkdownEditor(widgets.MainWindow):
 
 
 def main():
+    foption = None
+    if len(sys.argv) > 1:
+        index = helpers.find_index(sys.argv, '-f')
+        if index > -1:
+            sys.argv.pop(index)
+            try:
+                foption = sys.argv[index]
+                sys.argv.pop(index)
+            except IndexError:
+                print('Warning: no file specified after -f option', file=sys.stderr)
     app = QApplication(sys.argv)
-    mainWin = MarkdownEditor()
+    mainWin = MarkdownEditor(foption)
     mainWin.show()
     sys.exit(app.exec_())
 
