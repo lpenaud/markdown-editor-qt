@@ -15,7 +15,7 @@ class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
     def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
-        tmpfile = helpers.mktemp(suffix = '.html')
+        tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
         defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
         tmpPath = defaultPath if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
         self._box = widgets.Box(QBoxLayout.LeftToRight)
@@ -164,7 +164,9 @@ def main():
     app = QApplication(sys.argv)
     mainWin = MarkdownEditor(foption)
     mainWin.show()
-    sys.exit(app.exec_())
+    response = app.exec_()
+    helpers.local_uri_to_path(mainWin.webview.url).unlink()
+    sys.exit(response)
 
 if __name__ == '__main__':
     main()
