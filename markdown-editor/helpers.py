@@ -5,6 +5,7 @@ from encodings.aliases import aliases
 from pathlib import Path
 import tempfile
 import locale
+import sys
 
 def check_if_encoding_exist(encoding):
     return encoding in aliases.keys() or encoding in aliases.values()
@@ -19,7 +20,7 @@ def joinpath_to_home(*other):
     return joinpath(Path.home(), *other)
 
 def local_uri_to_path(uri):
-    return Path(uri[7:]) # len('file://') == 7
+    return Path(uri[8:]) if sys.platform == 'win32' else Path(uri[7:]) # len('file://') == 7
 
 def mktemp(suffix = '', prefix=tempfile.template, dir=None):
     return Path(tempfile.mktemp(suffix, prefix, dir))
