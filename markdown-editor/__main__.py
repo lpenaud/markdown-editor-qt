@@ -1,11 +1,11 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import sys
 import os.path
+from helpers import is_frozen
 
-if hasattr(sys, 'frozen'):
+if is_frozen():
     path = os.path.realpath(os.path.abspath(__file__))
     sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
 else:

@@ -7,14 +7,17 @@ import tempfile
 import locale
 import sys
 
+def is_frozen():
+    return hasattr(sys, 'frozen')
+
 def check_if_encoding_exist(encoding):
     return encoding in aliases.keys() or encoding in aliases.values()
 
 def joinpath(root, *other):
     return Path.joinpath(root, *other)
 
-def joinpath_to_cwd(*other):
-    return joinpath(Path.cwd(), *other)
+def joinpath_to_cwd(*other): 
+    return joinpath(Path(__file__).parent if is_frozen() else Path.cwd(), *other)
 
 def joinpath_to_home(*other):
     return joinpath(Path.home(), *other)
@@ -33,3 +36,4 @@ def find_index(iterable, value):
         if iterable[i] == value:
             return i
     return -1
+
