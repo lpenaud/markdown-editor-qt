@@ -17,10 +17,9 @@ class MarkdownEditor(widgets.MainWindow):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
         defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
-        tmpPath = defaultPath if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
         self._box = widgets.Box(QBoxLayout.LeftToRight)
         self._textFileChooser = dialogs.TextFileChooser(self)
-        self.pathnameSrc = tmpPath if tmpPath.is_file() else defaultPath
+        self.pathnameSrc = None if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
 
         self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
         self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
@@ -67,7 +66,10 @@ class MarkdownEditor(widgets.MainWindow):
 
         self.textEditor = widgets.TextEditor()
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
-        self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
+        if self.pathnameSrc:
+            self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
+        else:
+            self.textEditor.textContent = defaultPath.read_text()
 
         self.webview = widgets.WebView()
         self.triggeredPreview()
