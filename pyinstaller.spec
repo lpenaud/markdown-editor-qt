@@ -8,7 +8,8 @@ added_files = [
     ('README.rst', '.'),
     ('LICENSE', '.'),
     ('example', 'example'),
-    ('template', 'template')
+    ('template', 'template'),
+    ('icons', 'icons')
 ]
 
 a = Analysis(['markdown-editor/__main__.py'],

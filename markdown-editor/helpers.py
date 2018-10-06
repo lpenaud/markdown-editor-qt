@@ -7,6 +7,7 @@ import tempfile
 import locale
 import sys
 import os
+import platform
 
 def is_frozen():
     return hasattr(sys, 'frozen')
@@ -24,7 +25,7 @@ def joinpath_to_home(*other):
     return joinpath(Path.home(), *other)
 
 def local_uri_to_path(uri):
-    return Path(uri[8:]) if sys.platform == 'win32' else Path(uri[7:]) # len('file://') == 7
+    return Path(uri[8:]) if on_windows() else Path(uri[7:]) # len('file://') == 7
 
 def mktemp(suffix = '', prefix=tempfile.template, dir=None):
     return Path(tempfile.mktemp(suffix, prefix, dir))
@@ -40,3 +41,16 @@ def find_index(iterable, value):
 
 def get_environ_var(key_name):
     return os.environ[key_name]
+
+def on_windows():
+    return platform.system() == 'Windows'
+
+def on_linux():
+    return platform.system() == 'Linux'
+
+def on_mac():
+    return platform.system() == 'Darwin'
+
+def listing_subdir(str_path):
+    p = Path(str_path)
+    return [x for x in p.iterdir() if x.is_dir()]

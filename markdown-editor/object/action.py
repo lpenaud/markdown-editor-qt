@@ -2,6 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.Qt import QAction, QIcon, QKeySequence
+import helpers
+from .helpers import get_current_system_icon_theme
+
+def populateIconThemeSearchPaths():
+    themeSearchPaths = [str(helpers.joinpath_to_cwd('icons'))]
+    if helpers.on_linux():
+        themeSearchPaths.append('/usr/share/icons')
+    QIcon.setThemeSearchPaths(themeSearchPaths)
+
+populateIconThemeSearchPaths()
+QIcon.setThemeName(get_current_system_icon_theme())
 
 class Action(QAction):
     """docstring for Action."""
@@ -38,3 +49,6 @@ class Action(QAction):
     def keysequence(self, keysequence):
         self.setShortcut(QKeySequence(keysequence))
         self._keysequence = keysequence
+
+    def refreshIcons(self):
+        self.setIcon(QIcon.fromTheme(self.iconName))
