@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import locale
 import sys
+import os
 
 def is_frozen():
     return hasattr(sys, 'frozen')
@@ -16,7 +17,7 @@ def check_if_encoding_exist(encoding):
 def joinpath(root, *other):
     return Path.joinpath(root, *other)
 
-def joinpath_to_cwd(*other): 
+def joinpath_to_cwd(*other):
     return joinpath(Path(__file__).parent if is_frozen() else Path.cwd(), *other)
 
 def joinpath_to_home(*other):
@@ -37,3 +38,5 @@ def find_index(iterable, value):
             return i
     return -1
 
+def get_environ_var(key_name):
+    return os.environ[key_name]
