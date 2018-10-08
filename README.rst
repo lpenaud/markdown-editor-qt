@@ -19,8 +19,9 @@ A Markdown editor.
 TODO
 *****************
 
-- Add pandoc
-- Add file system functions like open or save file
+- Add "about" window
+- Add thread to save file
+- Add pandoc to preferences window
 
 *****************
 License
