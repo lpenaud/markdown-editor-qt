@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5.Qt import QApplication, QBoxLayout
+from PyQt5.Qt import QApplication, QBoxLayout, QIcon
 from PyQt5 import QtCore
 import widgets
 import dialogs
@@ -31,7 +31,11 @@ class MarkdownEditor(widgets.MainWindow):
         self.addAction('edit-cut', object.Action('Cut', self.triggeredCut, 'Ctrl+X', 'edit-cut'))
         self.addAction('edit-copy', object.Action('Copy', self.triggeredCopy, 'Ctrl+C', 'edit-copy'))
         self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
+        self.addAction('edit-preference', object.Action('Preferences', self.triggeredPreference, 'Ctrl+,', 'preferences-system'))
         self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
+
+        self.preferenceDialog = dialogs.Preferences(self)
+        self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
 
         pandocKargs = {
             'template': str(helpers.joinpath_to_cwd('template', 'default.html')),
@@ -52,6 +56,7 @@ class MarkdownEditor(widgets.MainWindow):
         self._menubar.appendMenu('Edit')
         self._menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
         self._menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
+        self._menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
         self._menubar.appendMenu('View')
         self._menubar.addActionToMenu('View', self.actions['view-refresh'])
         self.setMenuBar(self._menubar)
@@ -62,6 +67,7 @@ class MarkdownEditor(widgets.MainWindow):
         self._toolbar.insertSeparator(self.actions['edit-cut'])
         self._toolbar.insertSeparator(self.actions['edit-undo'])
         self._toolbar.insertSeparator(self.actions['view-refresh'])
+        self._toolbar.removeAction(self.actions['edit-preference'])
         self.addToolBar(self._toolbar)
 
         self.textEditor = widgets.TextEditor()
@@ -151,6 +157,14 @@ class MarkdownEditor(widgets.MainWindow):
             if dialogs.isAccepted(self._textFileChooser.exec_()):
                 self.pandoc.convert_file(str(self.pathnameSrc), str(self._textFileChooser.pathname))
 
+    def triggeredThemeChanged(self, themeName):
+        for action in self.actions.values():
+            action.refreshIcons()
+
+    def triggeredPreference(self):
+        response = self.preferenceDialog.exec_()
+        if dialogs.isRejected(response):
+            self.preferenceDialog.rollback()
 
 def main():
     foption = None
