@@ -7,8 +7,8 @@ class Box(QWidget):
     """docstring for BoxLayout."""
     def __init__(self, direction):
         super(Box, self).__init__()
-        self._box = QBoxLayout(direction)
-        self.setLayout(self._box)
+        self.box = QBoxLayout(direction)
+        self.setLayout(self.box)
 
     def addWidget(self, widget, stretch = 0):
-        self._box.addWidget(widget, stretch)
+        self.box.addWidget(widget, stretch)

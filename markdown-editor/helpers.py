@@ -54,3 +54,13 @@ def on_mac():
 def listing_subdir(str_path):
     p = Path(str_path)
     return [x for x in p.iterdir() if x.is_dir()]
+
+def raise_type_error(var, expected, passing):
+    typeExpected = type(expected)
+    if typeExpected is tuple or typeExpected is list:
+        expected = ','.join(expected)
+    raise TypeError('{} must be {} not a {}'.format(
+        var,
+        expected,
+        passing
+    ))

@@ -10,9 +10,9 @@ class TextEditor(QPlainTextEdit):
         super(TextEditor, self).__init__()
         self.insertPlainText(text)
         self.setTabStopDistance(tabStopDistance)
-        self._timer = QTimer(self)
+        self.__timer = QTimer(self)
         self.textChanged.connect(self.onTextChanged)
-        self._timer.setSingleShot(True)
+        self.__timer.setSingleShot(True)
 
     @property
     def textContent(self):
@@ -24,7 +24,7 @@ class TextEditor(QPlainTextEdit):
 
     @property
     def timeout(self):
-        return self._timer.timeout
+        return self.__timer.timeout
 
     def onTextChanged(self):
-        self._timer.start(300)
+        self.__timer.start(300)

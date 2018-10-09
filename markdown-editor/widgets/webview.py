@@ -8,15 +8,15 @@ class WebView(QWebEngineView):
     """docstring for WebView."""
     def __init__(self):
         super(WebView, self).__init__()
-        self._html = ''
+        self.__html = ''
 
     @property
     def html(self):
-        return self._html
+        return self.__html
 
     @html.setter
     def html(self, html):
-        self._html = html
+        self.__html = html
         self.setHtml(html)
 
     @property

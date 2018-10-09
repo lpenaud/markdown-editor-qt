@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5.Qt import QApplication, QBoxLayout, QIcon
+from PyQt5.Qt import QApplication, QBoxLayout, QIcon, QToolBar
 from PyQt5 import QtCore
 import widgets
 import dialogs
@@ -17,8 +17,8 @@ class MarkdownEditor(widgets.MainWindow):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
         defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
-        self._box = widgets.Box(QBoxLayout.LeftToRight)
-        self._textFileChooser = dialogs.TextFileChooser(self)
+        self.box = widgets.Box(QBoxLayout.LeftToRight)
+        self.textFileChooser = dialogs.TextFileChooser(self)
         self.pathnameSrc = None if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
 
         self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
@@ -33,42 +33,55 @@ class MarkdownEditor(widgets.MainWindow):
         self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
         self.addAction('edit-preference', object.Action('Preferences', self.triggeredPreference, 'Ctrl+,', 'preferences-system'))
         self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
+        self.addAction('view-about', object.Action('About', self.triggeredAbout))
+
+        with helpers.joinpath_to_cwd('requirements.txt').open(encoding = 'utf8') as requirements:
+            self.aboutDialog = dialogs.About(self,
+                copyright = 'Loïc Penaud ©',
+                programName = 'Markdown-Editor',
+                version = '1.2',
+                website = 'https://github.com/lpenaud/markdown-editor-qt',
+                websiteLabel = 'Github',
+                comments = 'A markdown editor',
+                licenseName = 'GPL-3.0',
+                licenseUrl = helpers.joinpath_to_cwd('LICENSE').as_uri(),
+                authors = ('Loïc Penaud',),
+                dependencies = [l.strip() for l in requirements.readlines()],
+            )
 
         self.preferenceDialog = dialogs.Preferences(self)
         self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
 
-        pandocKargs = {
-            'template': str(helpers.joinpath_to_cwd('template', 'default.html')),
-            'lang': helpers.get_lang(),
-            'inline_css': helpers.joinpath_to_cwd('template', 'default.css').read_text(),
-            'toc': True,
-            'toc_title': True
-        }
-        self.pandoc = Pandoc('markdown','html5', **pandocKargs)
-        self._thread = threads.PandocThread(self, tmpfile)
-        self._threadRunning = False
+        self.pandoc = Pandoc('markdown','html5',
+            template = str(helpers.joinpath_to_cwd('template', 'default.html')),
+            lang = helpers.get_lang(),
+            inline_css = helpers.joinpath_to_cwd('template', 'default.css').read_text(),
+            toc = True,
+            toc_title = True
+        )
+        self.thread = threads.PandocThread(self, tmpfile)
 
-        self._menubar = widgets.MenuBar()
-        self._menubar.appendMenu('File')
-        self._menubar.addActionsToMenu('File', self.findActionsLike('file'))
-        self._menubar.insertSeparatorToMenu('File', self.actions['file-document-save'])
-        self._menubar.insertSeparatorToMenu('File', self.actions['file-export-html'])
-        self._menubar.appendMenu('Edit')
-        self._menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
-        self._menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
-        self._menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
-        self._menubar.appendMenu('View')
-        self._menubar.addActionToMenu('View', self.actions['view-refresh'])
-        self.setMenuBar(self._menubar)
+        self.menubar = widgets.MenuBar(self)
+        self.menubar.appendMenu('File')
+        self.menubar.addActionsToMenu('File', self.findActionsLike('file'))
+        self.menubar.insertSeparatorToMenu('File', self.actions['file-document-save'])
+        self.menubar.insertSeparatorToMenu('File', self.actions['file-export-html'])
+        self.menubar.appendMenu('Edit')
+        self.menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
+        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
+        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
+        self.menubar.appendMenu('View')
+        self.menubar.addActionToMenu('View', self.actions['view-refresh'])
+        self.setMenuBar(self.menubar)
 
-        self._toolbar = widgets.ToolBar()
-        self._toolbar.addActions(self.actions.values())
-        self._toolbar.insertSeparator(self.actions['file-export-html'])
-        self._toolbar.insertSeparator(self.actions['edit-cut'])
-        self._toolbar.insertSeparator(self.actions['edit-undo'])
-        self._toolbar.insertSeparator(self.actions['view-refresh'])
-        self._toolbar.removeAction(self.actions['edit-preference'])
-        self.addToolBar(self._toolbar)
+        self.toolbar = QToolBar(self)
+        self.toolbar.addActions(self.actions.values())
+        self.toolbar.insertSeparator(self.actions['file-export-html'])
+        self.toolbar.insertSeparator(self.actions['edit-cut'])
+        self.toolbar.insertSeparator(self.actions['edit-undo'])
+        self.toolbar.insertSeparator(self.actions['view-refresh'])
+        self.toolbar.removeAction(self.actions['edit-preference'])
+        self.addToolBar(self.toolbar)
 
         self.textEditor = widgets.TextEditor()
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
@@ -81,23 +94,23 @@ class MarkdownEditor(widgets.MainWindow):
         self.triggeredPreview()
         self.webview.url = tmpfile.as_uri()
 
-        self._box.addWidget(self.textEditor)
-        self._box.addWidget(self.webview)
+        self.box.addWidget(self.textEditor)
+        self.box.addWidget(self.webview)
 
-        self.setCentralWidget(self._box)
+        self.setCentralWidget(self.box)
 
     def saveDocument(self, forceAs = False):
         writable = False
-        self._textFileChooser.mode = 'w'
+        self.textFileChooser.mode = 'w'
 
         if not(self.textEditor.textContent.endswith('\n')):
             self.textEditor.appendPlainText('')
 
         if not(self.pathnameSrc) or forceAs:
-            self._textFileChooser.setDefaultFilter(0)
-            self._textFileChooser.setWindowTitle('Save file')
-            if dialogs.isAccepted(self._textFileChooser.exec_()):
-                self.pathnameSrc = self._textFileChooser.pathname
+            self.textFileChooser.setDefaultFilter(0)
+            self.textFileChooser.setWindowTitle('Save file')
+            if dialogs.isAccepted(self.textFileChooser.exec_()):
+                self.pathnameSrc = self.textFileChooser.pathname
                 writable = True
         else:
             writable = True
@@ -106,11 +119,11 @@ class MarkdownEditor(widgets.MainWindow):
             self.pathnameSrc.write_text(self.textEditor.textContent)
 
     def openDocument(self):
-        self._textFileChooser.mode = 'r'
-        response = self._textFileChooser.exec_()
+        self.textFileChooser.mode = 'r'
+        response = self.textFileChooser.exec_()
         if dialogs.isAccepted(response):
-            self.textEditor.textContent = self._textFileChooser.readText()
-            self.pathnameSrc = self._textFileChooser.pathname
+            self.textEditor.textContent = self.textFileChooser.readText()
+            self.pathnameSrc = self.textFileChooser.pathname
 
     def triggeredTextTimeout(self):
         self.triggeredPreview()
@@ -144,7 +157,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.saveDocument()
 
     def triggeredPreview(self):
-        self._thread.start()
+        self.thread.start()
 
     def cbPandocThread(self):
         self.webview.reload()
@@ -152,10 +165,10 @@ class MarkdownEditor(widgets.MainWindow):
     def triggeredExport(self):
         self.saveDocument()
         if self.pathnameSrc:
-            self._textFileChooser.setDefaultFilter(1)
-            self._textFileChooser.setWindowTitle('Export html')
-            if dialogs.isAccepted(self._textFileChooser.exec_()):
-                self.pandoc.convert_file(str(self.pathnameSrc), str(self._textFileChooser.pathname))
+            self.textFileChooser.setDefaultFilter(1)
+            self.textFileChooser.setWindowTitle('Export html')
+            if dialogs.isAccepted(self.textFileChooser.exec_()):
+                self.pandoc.convert_file(str(self.pathnameSrc), str(self.textFileChooser.pathname))
 
     def triggeredThemeChanged(self, themeName):
         for action in self.actions.values():
@@ -165,6 +178,9 @@ class MarkdownEditor(widgets.MainWindow):
         response = self.preferenceDialog.exec_()
         if dialogs.isRejected(response):
             self.preferenceDialog.rollback()
+
+    def triggeredAbout(self):
+        self.aboutDialog.exec_()
 
 def main():
     foption = None

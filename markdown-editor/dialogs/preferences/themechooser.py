@@ -10,15 +10,14 @@ class ThemeChooser(QWidget):
     def __init__(self, parent = None):
         super(ThemeChooser, self).__init__(parent)
         self.currentIconTheme = QIcon.themeName()
-        self.layout = QVBoxLayout(self)
         self.label = QLabel(self)
         self.comboBox = QComboBox(self)
+        self.setLayout(QVBoxLayout(self))
 
         self.label.setText('Available themes :')
 
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.comboBox)
-        self.setLayout(self.layout)
+        self.layout().addWidget(self.label)
+        self.layout().addWidget(self.comboBox)
         self.comboBox.currentTextChanged.connect(self.onThemeChanged)
 
     def populateComboBox(self):

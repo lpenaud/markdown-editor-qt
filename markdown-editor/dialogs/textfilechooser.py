@@ -10,16 +10,16 @@ class TextFileChooser(QFileDialog):
     """docstring for TextFileChooser."""
     def __init__(self, parent):
         super(TextFileChooser, self).__init__(parent)
-        self._filters = ["Markdown file (*.md)", "Html file (*.html)", "All files (*.*)"]
-        self.setNameFilters(self._filters)
-        self.selectNameFilter(self._filters[0])
+        self.__filters = ["Markdown file (*.md)", "Html file (*.html)", "All files (*.*)"]
+        self.setNameFilters(self.__filters)
+        self.selectNameFilter(self.__filters[0])
         self.pathname = Path.home()
         self.mode = 'r'
         self.encoding = 'utf8'
 
     @property
     def pathname(self):
-        return self._pathname
+        return self.__pathname
 
     @pathname.setter
     def pathname(self, pathname):
@@ -27,14 +27,14 @@ class TextFileChooser(QFileDialog):
             path = Path.home()
         else:
             path = Path.absolute(Path(pathname))
-        self._pathname = path
+        self.__pathname = path
         if path.is_file():
             path = path.parent
         self.setDirectory(str(path))
 
     @property
     def mode(self):
-        return self._mode
+        return self.__mode
 
     @mode.setter
     def mode(self, mode):
@@ -44,27 +44,27 @@ class TextFileChooser(QFileDialog):
                 self.setAcceptMode(QFileDialog.AcceptOpen)
             else:
                 self.setAcceptMode(QFileDialog.AcceptSave)
-            self._mode = mode
+            self.__mode = mode
         else:
             raise ValueError('{} is not a available mode'.format(mode))
 
     @property
     def encoding(self):
-        return self._encoding
+        return self.__encoding
 
     @encoding.setter
     def encoding(self, encoding):
         if not(helpers.check_if_encoding_exist(encoding)):
             raise ValueError('{} code is unknown'.format(encoding))
-        self._encoding = encoding
+        self.__encoding = encoding
 
     @property
     def filter(self):
-        return self._filters.copy()
+        return self.__filters.copy()
 
     @filter.setter
     def filter(self, filters):
-        self._filters = filters
+        self.__filters = filters
 
     def exec_(self):
         if self.mode == 'w':
@@ -85,15 +85,15 @@ class TextFileChooser(QFileDialog):
         return self.pathname.read_text(encoding=self.encoding)
 
     def addFilter(self, filter):
-        self._filters.append(filter)
-        self.setNameFilters(self._filters)
-        self.selectNameFilter(self._filters[0])
+        self.__filters.append(filter)
+        self.setNameFilters(self.__filters)
+        self.selectNameFilter(self.__filters[0])
 
     def addFilters(self, filters):
-        self._filters.extend(filters)
+        self.__filters.extend(filters)
         self.setNameFilter(filters)
-        self.selectNameFilter(self._filters[0])
+        self.selectNameFilter(self.__filters[0])
 
     def setDefaultFilter(self, index):
-        self.selectNameFilter(self._filters[index])
-        self.setDefaultSuffix(self._filters[index].split('(')[1][2:-1])
+        self.selectNameFilter(self.__filters[index])
+        self.setDefaultSuffix(self.__filters[index].split('(')[1][2:-1])
