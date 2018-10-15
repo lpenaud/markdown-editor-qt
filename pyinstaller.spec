@@ -11,6 +11,7 @@ added_files = [
     ('template', 'template'),
     ('icons', 'icons'),
     ('requirements.txt', '.'),
+    ('dist/Markdown-Editor.bat', '.'),
 ]
 
 a = Analysis(['markdown-editor/__main__.py'],
