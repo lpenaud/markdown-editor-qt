@@ -9,7 +9,8 @@ added_files = [
     ('LICENSE', '.'),
     ('example', 'example'),
     ('template', 'template'),
-    ('icons', 'icons')
+    ('icons', 'icons'),
+    ('requirements.txt', '.'),
 ]
 
 a = Analysis(['markdown-editor/__main__.py'],
