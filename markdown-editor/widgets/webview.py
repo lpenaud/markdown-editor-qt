@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import QUrl
+from PyQt5.Qt import QSizePolicy, QUrl
+
 
 class WebView(QWebEngineView):
     """docstring for WebView."""
-    def __init__(self):
-        super(WebView, self).__init__()
+    def __init__(self, parent = None):
+        super(WebView, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.__html = ''
 
     @property

@@ -4,10 +4,13 @@
 from PyQt5.Qt import QWidget, QIcon, QComboBox, QLabel, QVBoxLayout, pyqtSignal
 import helpers
 
+
 class ThemeChooser(QWidget):
     """docstring for ThemeChooser."""
+
     themeChanged = pyqtSignal(str)
-    def __init__(self, parent = None):
+
+    def __init__(self, parent):
         super(ThemeChooser, self).__init__(parent)
         self.currentIconTheme = QIcon.themeName()
         self.label = QLabel(self)
@@ -19,6 +22,7 @@ class ThemeChooser(QWidget):
         self.layout().addWidget(self.label)
         self.layout().addWidget(self.comboBox)
         self.comboBox.currentTextChanged.connect(self.onThemeChanged)
+        self.populateComboBox()
 
     def populateComboBox(self):
         self.comboBox.clear()

@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtCore
+from .thread import Thread
 
-class PandocThread(QtCore.QThread):
-    sig = QtCore.pyqtSignal(str)
+class PandocThread(Thread):
     def __init__(self, parent, pathname):
         super(PandocThread, self).__init__(parent)
-        self.parent = parent
-        self.sig.connect(parent.cbPandocThread)
         self.pathname = str(pathname)
+        self.sig.connect(parent.cbPandocThread)
 
     def run(self):
-        self.parent.pandoc.convert_text(self.parent.textEditor.textContent, self.pathname)
+        self.parent().pandoc.convert_text(self.parent().textEditor.textContent, self.pathname)
         self.sig.emit('conversion-end')

@@ -4,6 +4,7 @@
 from pathlib import Path
 import pypandoc
 
+
 class Pandoc(object):
     """docstring for Pandoc."""
     def __init__(self, input_format, output_format, **kwargs):

@@ -64,3 +64,17 @@ def raise_type_error(var, expected, passing):
         expected,
         passing
     ))
+
+def get_name_obj(obj):
+    return type(obj).__name__
+
+def raise_attribute_error(obj, name_method):
+    raise AttributeError("'{}' object has no attribute '{}'".format(
+        get_name_obj(obj),
+        name_method
+    ))
+
+def get_username():
+    if on_windows():
+        return get_environ_var('USERNAME')
+    return get_environ_var('USER')

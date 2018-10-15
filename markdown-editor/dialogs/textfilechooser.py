@@ -6,6 +6,7 @@ from pathlib import Path
 from .helpers import isAccepted, isRejected
 import helpers
 
+
 class TextFileChooser(QFileDialog):
     """docstring for TextFileChooser."""
     def __init__(self, parent):
