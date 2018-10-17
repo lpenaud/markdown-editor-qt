@@ -11,6 +11,7 @@ import helpers
 import object
 from pandoc import Pandoc
 
+
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
     def __init__(self, pathnameSrc = None):
@@ -60,6 +61,8 @@ class MarkdownEditor(widgets.MainWindow):
             toc_title = True
         )
         self.thread = threads.PandocThread(self, tmpfile)
+        self.saveThread = threads.SaveThread(self)
+        self.saveThreading = True
 
         self.menubar = widgets.MenuBar(self)
         self.menubar.appendMenu('File')
@@ -127,6 +130,8 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredTextTimeout(self):
         self.triggeredPreview()
+        if self.saveThreading:
+            self.saveThread.start()
 
     def triggeredPaste(self):
         self.textEditor.paste()
@@ -162,7 +167,7 @@ class MarkdownEditor(widgets.MainWindow):
     def cbPandocThread(self):
         self.webview.reload()
 
-    def cbcbPandocThread(self):
+    def cbSaveThread(self):
         pass
 
     def triggeredExport(self):
