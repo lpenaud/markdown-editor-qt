@@ -162,6 +162,9 @@ class MarkdownEditor(widgets.MainWindow):
     def cbPandocThread(self):
         self.webview.reload()
 
+    def cbcbPandocThread(self):
+        pass
+
     def triggeredExport(self):
         self.saveDocument()
         if self.pathnameSrc:
