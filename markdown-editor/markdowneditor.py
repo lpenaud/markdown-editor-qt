@@ -186,6 +186,8 @@ class MarkdownEditor(widgets.MainWindow):
         response = self.preferenceDialog.exec_()
         if dialogs.isRejected(response):
             self.preferenceDialog.rollback()
+        elif dialogs.isAccepted(response):
+            self.preferenceDialog.commit()
 
     def triggeredAbout(self):
         self.aboutDialog.exec_()
