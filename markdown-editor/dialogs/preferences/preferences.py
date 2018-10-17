@@ -3,6 +3,7 @@
 
 from PyQt5.Qt import QDialog, QTabWidget, QVBoxLayout, QDialogButtonBox
 from .themechooser import ThemeChooser
+from .saveoption import SaveOption
 
 
 class Preferences(QDialog):
@@ -15,6 +16,8 @@ class Preferences(QDialog):
         self.themeChooser = ThemeChooser(self.tab)
         self.tab.addTab(self.themeChooser, 'Theme')
 
+        self.saveOption = SaveOption(self.tab, self.parent().saveThreading)
+        self.tab.addTab(self.saveOption, 'Save')
         self.layout.addWidget(self.tab)
 
         self.buttonBox = QDialogButtonBox(self)

@@ -50,9 +50,6 @@ class MarkdownEditor(widgets.MainWindow):
                 dependencies = [l.strip() for l in requirements.readlines()],
             )
 
-        self.preferenceDialog = dialogs.Preferences(self)
-        self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
-
         self.pandoc = Pandoc('markdown','html5',
             template = str(helpers.joinpath_to_cwd('template', 'default.html')),
             lang = helpers.get_lang(),
@@ -61,8 +58,13 @@ class MarkdownEditor(widgets.MainWindow):
             toc_title = True
         )
         self.thread = threads.PandocThread(self, tmpfile)
+
         self.saveThread = threads.SaveThread(self)
         self.saveThreading = True
+
+        self.preferenceDialog = dialogs.Preferences(self)
+        self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
+        self.preferenceDialog.saveOption.saveOptionChanged.connect(self.triggeredSaveOptionChanged)
 
         self.menubar = widgets.MenuBar(self)
         self.menubar.appendMenu('File')
@@ -128,6 +130,15 @@ class MarkdownEditor(widgets.MainWindow):
             self.textEditor.textContent = self.textFileChooser.readText()
             self.pathnameSrc = self.textFileChooser.pathname
 
+    def documentIsSave(self):
+        return not(self.pathnameSrc) or self.pathnameSrc.read_text(encoding='utf8') == self.textEditor.textContent
+
+    def closeEvent(self, evt):
+        if self.documentIsSave():
+            evt.accept()
+        else:
+            evt.ignore()
+
     def triggeredTextTimeout(self):
         self.triggeredPreview()
         if self.saveThreading:
@@ -181,6 +192,9 @@ class MarkdownEditor(widgets.MainWindow):
     def triggeredThemeChanged(self, themeName):
         for action in self.actions.values():
             action.refreshIcons()
+
+    def triggeredSaveOptionChanged(self, saveThreading):
+        self.saveThreading = saveThreading
 
     def triggeredPreference(self):
         response = self.preferenceDialog.exec_()
