@@ -6,8 +6,8 @@ from PyQt5.QtCore import QTimer
 
 class TextEditor(QPlainTextEdit):
     """docstring for TextEditor."""
-    def __init__(self, text = '\n', tabStopDistance = 20):
-        super(TextEditor, self).__init__()
+    def __init__(self, parent = None, text = '\n', tabStopDistance = 20):
+        super(TextEditor, self).__init__(parent)
         self.insertPlainText(text)
         self.setTabStopDistance(tabStopDistance)
         self.__timer = QTimer(self)

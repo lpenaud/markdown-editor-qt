@@ -6,8 +6,8 @@ from PyQt5.QtCore import QUrl
 
 class WebView(QWebEngineView):
     """docstring for WebView."""
-    def __init__(self):
-        super(WebView, self).__init__()
+    def __init__(self, parent = None):
+        super(WebView, self).__init__(parent)
         self.__html = ''
 
     @property
