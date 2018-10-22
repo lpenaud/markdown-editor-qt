@@ -23,7 +23,6 @@ class SaveOption(Option):
         self.addWidget(self.checkBox)
 
     def onCheckBoxStateChanged(self, state):
-        print(state)
         self.saveOptionChanged.emit(self.checkBox.isChecked())
 
     def rollback(self):
