@@ -121,7 +121,7 @@ class MarkdownEditor(widgets.MainWindow):
             writable = True
 
         if writable:
-            self.pathnameSrc.write_text(self.textEditor.textContent)
+            self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
 
     def openDocument(self):
         self.textFileChooser.mode = 'r'
