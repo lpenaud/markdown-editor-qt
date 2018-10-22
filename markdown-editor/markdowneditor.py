@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5.Qt import QApplication, QBoxLayout, QIcon, QToolBar
+from PyQt5.Qt import QApplication, QBoxLayout, QToolBar, QLabel, QSizePolicy
 from PyQt5 import QtCore
 import widgets
 import dialogs
@@ -18,9 +18,18 @@ class MarkdownEditor(widgets.MainWindow):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
         defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
-        self.box = widgets.Box(QBoxLayout.LeftToRight)
+        self.box = widgets.Box(QBoxLayout.TopToBottom, self)
+        self.subBox = widgets.Box(QBoxLayout.LeftToRight, self.box)
         self.textFileChooser = dialogs.TextFileChooser(self)
-        self.pathnameSrc = None if not(pathnameSrc) else helpers.Path(pathnameSrc).absolute()
+        if pathnameSrc:
+            self.pathnameSrc = helpers.Path(pathnameSrc).absolute()
+            self.documentTitle = self.pathnameSrc.name
+        else:
+            self.pathnameSrc = None
+            self.documentTitle = 'New document'
+
+        self.labelDocumentState = QLabel(self.box)
+        self.box.addWidget(self.labelDocumentState)
 
         self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
         self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
@@ -88,28 +97,46 @@ class MarkdownEditor(widgets.MainWindow):
         self.toolbar.removeAction(self.actions['edit-preference'])
         self.addToolBar(self.toolbar)
 
-        self.textEditor = widgets.TextEditor()
+        self.textEditor = widgets.TextEditor(self.subBox)
+        self.textEditor.setDocumentTitle('New document')
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
+        self.textEditor.textChanged.connect(self.triggeredTextChanged)
         if self.pathnameSrc:
             self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
         else:
             self.textEditor.textContent = defaultPath.read_text()
+        self.textEditor.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.webview = widgets.WebView()
+        self.webview = widgets.WebView(self.subBox)
         self.triggeredPreview()
         self.webview.url = tmpfile.as_uri()
+        self.webview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.box.addWidget(self.textEditor)
-        self.box.addWidget(self.webview)
+        self.subBox.addWidget(self.textEditor)
+        self.subBox.addWidget(self.webview)
 
+        self.box.addWidget(self.subBox)
         self.setCentralWidget(self.box)
+        self.documentIsSave = True
+
+    @property
+    def documentIsSave(self):
+        return self.__documentIsSave
+
+    @documentIsSave.setter
+    def documentIsSave(self, documentIsSave):
+        if documentIsSave:
+            self.setWindowTitle(self.documentTitle)
+            self.labelDocumentState.setText('Document is save')
+        else:
+            if not(self.windowTitle().startswith('*')):
+                self.setWindowTitle('*' + self.windowTitle())
+            self.labelDocumentState.setText('Document was been modified')
+        self.__documentIsSave = documentIsSave
 
     def saveDocument(self, forceAs = False):
         writable = False
         self.textFileChooser.mode = 'w'
-
-        if not(self.textEditor.textContent.endswith('\n')):
-            self.textEditor.appendPlainText('')
 
         if not(self.pathnameSrc) or forceAs:
             self.textFileChooser.setDefaultFilter(0)
@@ -120,7 +147,8 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             writable = True
 
-        if writable:
+        if writable and not(self.documentIsSave):
+            self.documentIsSave = True
             self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
 
     def openDocument(self):
@@ -129,12 +157,10 @@ class MarkdownEditor(widgets.MainWindow):
         if dialogs.isAccepted(response):
             self.textEditor.textContent = self.textFileChooser.readText()
             self.pathnameSrc = self.textFileChooser.pathname
-
-    def documentIsSave(self):
-        return not(self.pathnameSrc) or self.pathnameSrc.read_text(encoding='utf8') == self.textEditor.textContent
+            self.documentTitle = self.pathnameSrc.name
 
     def closeEvent(self, evt):
-        if self.documentIsSave():
+        if self.documentIsSave:
             evt.accept()
         else:
             evt.ignore()
@@ -143,6 +169,9 @@ class MarkdownEditor(widgets.MainWindow):
         self.triggeredPreview()
         if self.saveThreading:
             self.saveThread.start()
+
+    def triggeredTextChanged(self):
+        self.documentIsSave = False
 
     def triggeredPaste(self):
         self.textEditor.paste()
