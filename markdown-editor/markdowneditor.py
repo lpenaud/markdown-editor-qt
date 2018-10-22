@@ -163,7 +163,14 @@ class MarkdownEditor(widgets.MainWindow):
         if self.documentIsSave:
             evt.accept()
         else:
-            evt.ignore()
+            response = dialogs.MessageBox.documentIsNotSave(self)
+            if dialogs.MessageBox.isDiscardClicked(response):
+                evt.accept()
+            elif dialogs.MessageBox.isSaveClicked(response):
+                self.saveDocument()
+                evt.accept()
+            else:
+                evt.ignore()
 
     def triggeredTextTimeout(self):
         self.triggeredPreview()
