@@ -6,7 +6,6 @@ from .thread import Thread
 class SaveThread(Thread):
     def __init__(self, parent):
         super(SaveThread, self).__init__(parent)
-        self.sig.connect(parent.cbSaveThread)
 
     def run(self):
         if self.parent().pathnameSrc:
