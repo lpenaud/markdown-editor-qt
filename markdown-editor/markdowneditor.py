@@ -15,6 +15,7 @@ from pandoc import Pandoc
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
     
+    documentIsSaveSig = QtCore.pyqtSignal(str)
     documentTitleDefault = 'New document'
 
     def __init__(self, pathnameSrc = None):
@@ -121,6 +122,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.box.addWidget(self.subBox)
         self.setCentralWidget(self.box)
         self.documentIsSave = True
+        self.documentIsSaveSig.connect(self.documentIsSaveSigCb)
 
     @property
     def documentIsSave(self):
@@ -134,8 +136,11 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             if not(self.windowTitle().startswith('*')):
                 self.setWindowTitle('*' + self.windowTitle())
-            self.labelDocumentState.setText('Document was been modified')
-        self.__documentIsSave = documentIsSave
+            self.labelDocumentState.setText('Document has been modified')
+        self.__documentIsSave = documentIsSave        
+
+    def documentIsSaveSigCb(self):
+        self.documentIsSave = True
 
     def saveDocument(self, forceAs = False):
         writable = False
@@ -152,8 +157,8 @@ class MarkdownEditor(widgets.MainWindow):
             writable = True
 
         if writable and not(self.documentIsSave):
-            self.documentIsSave = True
             self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
+            self.documentIsSaveSig.emit("document-is-save")
 
     def openDocument(self):
         self.textFileChooser.mode = 'r'
