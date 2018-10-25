@@ -14,6 +14,9 @@ from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
+    
+    documentTitleDefault = 'New document'
+
     def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
         tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
@@ -26,7 +29,7 @@ class MarkdownEditor(widgets.MainWindow):
             self.documentTitle = self.pathnameSrc.name
         else:
             self.pathnameSrc = None
-            self.documentTitle = 'New document'
+            self.documentTitle = MarkdownEditor.documentTitleDefault
 
         self.labelDocumentState = QLabel(self.box)
         self.box.addWidget(self.labelDocumentState)
@@ -143,6 +146,7 @@ class MarkdownEditor(widgets.MainWindow):
             self.textFileChooser.setWindowTitle('Save file')
             if dialogs.isAccepted(self.textFileChooser.exec_()):
                 self.pathnameSrc = self.textFileChooser.pathname
+                self.documentTitle = self.pathnameSrc.name
                 writable = True
         else:
             writable = True
@@ -197,13 +201,15 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredNewDocument(self):
         self.textEditor.clear()
+        self.documentIsSave = True
         self.pathnameSrc = None
+        self.documentTitle = MarkdownEditor.documentTitleDefault
 
     def triggeredOpenDocument(self):
         self.openDocument()
 
     def triggeredSaveAsDocument(self):
-        self.saveDocument(forceAs = True)
+        self.saveDocument(forceAs=True)
 
     def triggeredSaveDocument(self):
         self.saveDocument()
