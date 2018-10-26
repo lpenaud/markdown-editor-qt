@@ -94,6 +94,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.menubar.appendMenu('Edit')
         self.menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
         self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
+        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-find'])
         self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
         self.menubar.appendMenu('View')
         self.menubar.addActionToMenu('View', self.actions['view-refresh'])
@@ -104,6 +105,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.toolbar.insertSeparator(self.actions['file-export-html'])
         self.toolbar.insertSeparator(self.actions['edit-cut'])
         self.toolbar.insertSeparator(self.actions['edit-undo'])
+        self.toolbar.insertSeparator(self.actions['edit-find'])
         self.toolbar.insertSeparator(self.actions['view-refresh'])
         self.toolbar.removeAction(self.actions['edit-preference'])
         self.addToolBar(self.toolbar)
@@ -128,6 +130,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.setCentralWidget(self.box)
         self.documentIsSave = True
         self.documentIsSaveSig.connect(self.documentIsSaveSigCb)
+        self.readConfig()
 
     @property
     def documentIsSave(self):
@@ -263,6 +266,25 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredAbout(self):
         self.aboutDialog.exec_()
+
+    def readConfig(self):
+        config = helpers.serialize_json(MarkdownEditor.configPath)
+        themeConfig = config['theme']
+        documentConfig = config['document']
+        exportConfig = config['export']
+
+        if not(themeConfig['name'] == 'SYSTEM'):
+            self.preferenceDialog.themeChooser.comboBox.setCurrentText(themeConfig['name'])
+
+        self.preferenceDialog.saveOption.checkBox.setChecked(documentConfig['autosave'])
+
+        self.pandoc.input_format = exportConfig['format']['input']
+        self.pandoc.output_format = exportConfig['format']['output']
+        self.pandoc.template = helpers.joinpath_to_cwd(*exportConfig['template'])
+        self.pandoc.lang = exportConfig['lang']
+        self.pandoc.inline_css = helpers.joinpath_to_cwd(*exportConfig['inline_css']).read_text()
+        self.pandoc.toc = exportConfig['toc']['toc']
+        self.pandoc.toc_title = exportConfig['toc']['title']
 
 def main():
     foption = None
