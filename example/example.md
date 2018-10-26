@@ -1,8 +1,8 @@
 % {title}
 % {author} <{email}>
 
-# Headings 1
+# Heading 1
 
-## Headings 2
+## Heading 2
 
 ### Heading 3
