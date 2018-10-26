@@ -43,17 +43,17 @@ class Pandoc(object):
 
     @property
     def template(self):
-        return self._template
+        return self.__template
 
     @template.setter
     def template(self, template):
         if template:
             pathname = Path(template).absolute()
             if not(pathname.exists()):
-                raise ValueError('{} doesn\'t exists'.format(template))
-            self._template = str(pathname)
+                raise ValueError('{} doesn\'t exist'.format(template))
+            self.__template = str(pathname)
         else:
-            self._template = None
+            self.__template = None
 
     @property
     def css(self):
@@ -82,7 +82,7 @@ class Pandoc(object):
     def _add_var_args(self, name, value):
         return ('-V', '{}={}'.format(name, value))
 
-    def _generate_args(self):
+    def __generate_args(self):
         args = []
         if self.template:
             args.extend(('--template', self.template))
@@ -98,14 +98,14 @@ class Pandoc(object):
             args.extend(self._add_var_args('inline-css', self.inline_css))
         return args
 
-    def convert_text(self, text, outputfile = None):
-        return pypandoc.convert_text(text, self.output_format, self.input_format, self._generate_args(), 'utf-8', outputfile)
+    def convert_text(self, text, outputfile=None):
+        return pypandoc.convert_text(text, self.output_format, self.input_format, self.__generate_args(), 'utf-8', outputfile)
 
-    def convert_file(self, inputfile, outputfile = None):
+    def convert_file(self, inputfile, outputfile=None):
         pathname = Path(inputfile).absolute()
         if not(pathname.exists()):
             raise ValueError('{} doesn\'t exists'.format(inputfile))
-        pypandoc.convert_file(str(pathname), self.output_format, self.input_format, self._generate_args(), 'utf-8', outputfile)
+        pypandoc.convert_file(str(pathname), self.output_format, self.input_format, self.__generate_args(), 'utf-8', outputfile)
 
 
 def main():

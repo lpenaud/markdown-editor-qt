@@ -23,6 +23,7 @@ class MarkdownEditor(widgets.MainWindow):
     documentIsSaveSig = pyqtSignal(str)
     documentTitleDefault = 'New document'
     defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
+    configPath = helpers.joinpath_to_cwd('config.json')
 
     def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
