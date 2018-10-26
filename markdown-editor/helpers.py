@@ -8,6 +8,7 @@ import locale
 import sys
 import os
 import platform
+import json
 
 def is_frozen():
     return hasattr(sys, 'frozen')
@@ -78,3 +79,9 @@ def get_username():
     if on_windows():
         return get_environ_var('USERNAME')
     return get_environ_var('USER')
+
+def serialize_json(pathname, encoding='utf8'):
+    path = Path(pathname).absolute()
+    if not(path.exists()):
+        raise ValueError("{} doesn't exist")
+    return json.loads(path.read_text(encoding=encoding), encoding=encoding)
