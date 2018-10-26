@@ -2,8 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5.Qt import QApplication, QBoxLayout, QToolBar, QLabel, QSizePolicy
-from PyQt5 import QtCore
+from PyQt5.Qt import (
+    QApplication,
+    QBoxLayout,
+    QToolBar,
+    QLabel,
+    pyqtSignal
+)
 import widgets
 import dialogs
 import threads
@@ -14,8 +19,8 @@ from pandoc import Pandoc
 
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
-    
-    documentIsSaveSig = QtCore.pyqtSignal(str)
+
+    documentIsSaveSig = pyqtSignal(str)
     documentTitleDefault = 'New document'
 
     def __init__(self, pathnameSrc = None):
@@ -49,7 +54,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
         self.addAction('view-about', object.Action('About', self.triggeredAbout))
 
-        with helpers.joinpath_to_cwd('requirements.txt').open(encoding = 'utf8') as requirements:
+        with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf8') as requirements:
             self.aboutDialog = dialogs.About(self,
                 copyright = 'Loïc Penaud ©',
                 programName = 'Markdown-Editor',
