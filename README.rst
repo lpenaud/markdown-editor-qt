@@ -2,7 +2,7 @@
 Markdown Editor
 ##################
 
-A Markdown editor.
+A markdown editor written in Python3.7 with Qt5 and pandoc2
 
 **Advices :**
 

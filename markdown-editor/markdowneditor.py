@@ -56,24 +56,24 @@ class MarkdownEditor(widgets.MainWindow):
 
         with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf8') as requirements:
             self.aboutDialog = dialogs.About(self,
-                copyright = 'Loïc Penaud ©',
-                programName = 'Markdown-Editor',
-                version = '1.2',
-                website = 'https://github.com/lpenaud/markdown-editor-qt',
-                websiteLabel = 'Github',
-                comments = 'A markdown editor',
-                licenseName = 'GPL-3.0',
-                licenseUrl = helpers.joinpath_to_cwd('LICENSE').as_uri(),
-                authors = ('Loïc Penaud',),
-                dependencies = [l.strip() for l in requirements.readlines()],
+                copyright='Loïc Penaud ©',
+                programName='Markdown-Editor',
+                version='1.2',
+                website='https://github.com/lpenaud/markdown-editor-qt',
+                websiteLabel='Github',
+                comments='A markdown editor written in Python3.7 with Qt5 and pandoc2',
+                licenseName='GPL-3.0',
+                licenseUrl=helpers.joinpath_to_cwd('LICENSE').as_uri(),
+                authors=('Loïc Penaud',),
+                dependencies=[l.strip() for l in requirements.readlines()],
             )
 
         self.pandoc = Pandoc('markdown','html5',
-            template = str(helpers.joinpath_to_cwd('template', 'default.html')),
-            lang = helpers.get_lang(),
-            inline_css = helpers.joinpath_to_cwd('template', 'default.css').read_text(),
-            toc = True,
-            toc_title = True
+            template=str(helpers.joinpath_to_cwd('template', 'default.html')),
+            lang=helpers.get_lang(),
+            inline_css=helpers.joinpath_to_cwd('template', 'default.css').read_text(),
+            toc=True,
+            toc_title=True
         )
         self.thread = threads.PandocThread(self, tmpfile)
 
