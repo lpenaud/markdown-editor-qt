@@ -1,0 +1,22 @@
+{
+    "theme": {
+        "name": "SYSTEM"
+    },
+    "document": {
+        "autosave": true,
+        "encoding": "utf8"
+    },
+    "export": {
+        "format": {
+            "input": "markdown",
+            "output": "html5"
+        },
+        "template": ["template", "default.html"],
+        "lang": "SYSTEM",
+        "inline_css": ["template", "default.css"],
+        "toc": {
+            "toc": true,
+            "title": true
+        }
+    }
+}
