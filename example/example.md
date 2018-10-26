@@ -1,5 +1,5 @@
-% Title
-% Author <author@example.com>
+% {title}
+% {author} <{author}@example.com>
 
 # Headings 1
 
