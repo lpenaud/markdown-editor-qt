@@ -173,11 +173,13 @@ class MarkdownEditor(widgets.MainWindow):
 
     def newDocument(self):
         template = MarkdownEditor.defaultPath.read_text()
+        author = helpers.get_username()
         self.pathnameSrc = None
         self.documentTitle = MarkdownEditor.documentTitleDefault
         self.textEditor.textContent = template.format(
             title=self.documentTitle,
-            author=helpers.get_username()
+            author=author,
+            email='{}@example.com'.format(author.replace(' ', '.'))
         )
         self.documentIsSave = True
 
