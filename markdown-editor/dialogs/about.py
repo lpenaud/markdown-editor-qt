@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.Qt import QDialog, QVBoxLayout, QLabel, QPixmap, QTextEdit, QDialogButtonBox
+from PyQt5.Qt import (
+    QDialog,
+    QVBoxLayout,
+    QLabel,
+    QPixmap,
+    QTextEdit,
+    QDialogButtonBox
+)
 from PyQt5.QtCore import Qt
 from pathlib import Path
 import helpers

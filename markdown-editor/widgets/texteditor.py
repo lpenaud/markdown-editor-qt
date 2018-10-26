@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.Qt import QPlainTextEdit, QSizePolicy
-from PyQt5.QtCore import QTimer
+from PyQt5.Qt import (
+    QPlainTextEdit,
+    QSizePolicy,
+    QTextDocument,
+    QTextCursor,
+    QTimer
+)
 
 
 class TextEditor(QPlainTextEdit):
@@ -15,6 +20,7 @@ class TextEditor(QPlainTextEdit):
         self.__timer = QTimer(self)
         self.textChanged.connect(self.onTextChanged)
         self.__timer.setSingleShot(True)
+        self.htmlFind = '<span style="background-color: turquoise;">{}</span>'
 
     @property
     def textContent(self):
@@ -30,3 +36,17 @@ class TextEditor(QPlainTextEdit):
 
     def onTextChanged(self):
         self.__timer.start(300)
+
+    def __find(self, text, cursor, findFlag):
+        if not(cursor.isNull()) and not(cursor.atEnd()):
+            cursor = self.document().find(text, cursor, findFlag)
+            cursor.movePosition(QTextCursor.NextWord, QTextCursor.KeepAnchor, 0)
+            cursor.insertHtml(self.htmlFind.format(cursor.selectedText()))
+            self.__find(text, cursor, findFlag)
+
+    def find(self, text, findFlag=QTextDocument.FindWholeWords):
+        self.textContent = self.textContent
+        cursor = QTextCursor(self.document())
+        cursor.beginEditBlock()
+        self.__find(text, cursor, findFlag)
+        cursor.endEditBlock()

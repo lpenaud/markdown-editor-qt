@@ -50,6 +50,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.addAction('edit-cut', object.Action('Cut', self.triggeredCut, 'Ctrl+X', 'edit-cut'))
         self.addAction('edit-copy', object.Action('Copy', self.triggeredCopy, 'Ctrl+C', 'edit-copy'))
         self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
+        self.addAction('edit-find', object.Action('Find', self.triggeredFind, 'Ctrl+F', 'edit-find'))
         self.addAction('edit-preference', object.Action('Preferences', self.triggeredPreference, 'Ctrl+,', 'preferences-system'))
         self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
         self.addAction('view-about', object.Action('About', self.triggeredAbout))
@@ -215,6 +216,9 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredUndo(self):
         self.textEditor.undo()
+
+    def triggeredFind(self):
+        self.textEditor.find(self.textEditor.textCursor().selectedText())
 
     def triggeredRedo(self):
         self.textEditor.redo()
