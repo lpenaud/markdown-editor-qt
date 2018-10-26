@@ -22,11 +22,11 @@ class MarkdownEditor(widgets.MainWindow):
 
     documentIsSaveSig = pyqtSignal(str)
     documentTitleDefault = 'New document'
+    defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
 
     def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
-        tmpfile = helpers.mktemp(prefix='markdown-editor', suffix = '.html')
-        defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
+        tmpfile = helpers.mktemp(prefix='markdown-editor', suffix='.html')
         self.box = widgets.Box(QBoxLayout.TopToBottom, self)
         self.subBox = widgets.Box(QBoxLayout.LeftToRight, self.box)
         self.textFileChooser = dialogs.TextFileChooser(self)
@@ -40,7 +40,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.labelDocumentState = QLabel(self.box)
         self.box.addWidget(self.labelDocumentState)
 
-        self.addAction('file-document-new', object.Action('New document', self.triggeredNewDocument, 'Ctrl+N', 'document-new'))
+        self.addAction('file-document-new', object.Action('New document', self.newDocument, 'Ctrl+N', 'document-new'))
         self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
         self.addAction('file-document-save', object.Action('Save document', self.triggeredSaveDocument, 'Ctrl+S', 'document-save'))
         self.addAction('file-document-save-as', object.Action('Save document as', self.triggeredSaveAsDocument, 'Ctrl+Shift+S', 'document-save-as'))
@@ -113,13 +113,11 @@ class MarkdownEditor(widgets.MainWindow):
         if self.pathnameSrc:
             self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
         else:
-            self.textEditor.textContent = defaultPath.read_text()
-        self.textEditor.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.newDocument()
 
         self.webview = widgets.WebView(self.subBox)
         self.triggeredPreview()
         self.webview.url = tmpfile.as_uri()
-        self.webview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.subBox.addWidget(self.textEditor)
         self.subBox.addWidget(self.webview)
@@ -142,7 +140,7 @@ class MarkdownEditor(widgets.MainWindow):
             if not(self.windowTitle().startswith('*')):
                 self.setWindowTitle('*' + self.windowTitle())
             self.labelDocumentState.setText('Document has been modified')
-        self.__documentIsSave = documentIsSave        
+        self.__documentIsSave = documentIsSave
 
     def documentIsSaveSigCb(self):
         self.documentIsSave = True
@@ -163,7 +161,7 @@ class MarkdownEditor(widgets.MainWindow):
 
         if writable and not(self.documentIsSave):
             self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
-            self.documentIsSaveSig.emit("document-is-save")
+            self.documentIsSaveSig.emit('document-is-save')
 
     def openDocument(self):
         self.textFileChooser.mode = 'r'
@@ -172,6 +170,16 @@ class MarkdownEditor(widgets.MainWindow):
             self.textEditor.textContent = self.textFileChooser.readText()
             self.pathnameSrc = self.textFileChooser.pathname
             self.documentTitle = self.pathnameSrc.name
+
+    def newDocument(self):
+        template = MarkdownEditor.defaultPath.read_text()
+        self.pathnameSrc = None
+        self.documentTitle = MarkdownEditor.documentTitleDefault
+        self.textEditor.textContent = template.format(
+            title=self.documentTitle,
+            author=helpers.get_username()
+        )
+        self.documentIsSave = True
 
     def closeEvent(self, evt):
         if self.documentIsSave:
@@ -208,12 +216,6 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredRedo(self):
         self.textEditor.redo()
-
-    def triggeredNewDocument(self):
-        self.textEditor.clear()
-        self.documentIsSave = True
-        self.pathnameSrc = None
-        self.documentTitle = MarkdownEditor.documentTitleDefault
 
     def triggeredOpenDocument(self):
         self.openDocument()
