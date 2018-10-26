@@ -1,1 +1,1 @@
-"%~dp0\Markdown-Editor.exe"
+"%~dp0Markdown-Editor.exe"
