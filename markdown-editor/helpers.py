@@ -73,3 +73,8 @@ def raise_attribute_error(obj, name_method):
         get_name_obj(obj),
         name_method
     ))
+
+def get_username():
+    if on_windows():
+        return get_environ_var('USERNAME')
+    return get_environ_var('USER')
