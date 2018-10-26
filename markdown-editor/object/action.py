@@ -14,6 +14,7 @@ def populateIconThemeSearchPaths():
 populateIconThemeSearchPaths()
 QIcon.setThemeName(get_current_system_icon_theme())
 
+
 class Action(QAction):
     """docstring for Action."""
     def __init__(self, label = None, onTriggered = None, keysequence = None, iconName = None, parent = None):

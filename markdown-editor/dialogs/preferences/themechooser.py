@@ -7,7 +7,9 @@ import helpers
 
 class ThemeChooser(QWidget):
     """docstring for ThemeChooser."""
+
     themeChanged = pyqtSignal(str)
+
     def __init__(self, parent):
         super(ThemeChooser, self).__init__(parent)
         self.currentIconTheme = QIcon.themeName()

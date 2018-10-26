@@ -8,6 +8,7 @@ from .saveoption import SaveOption
 
 class Preferences(QDialog):
     """docstring for Preferences."""
+
     def __init__(self, parent):
         super(Preferences, self).__init__(parent)
         self.layout = QVBoxLayout(self)

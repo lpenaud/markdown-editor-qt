@@ -6,8 +6,10 @@ from PyQt5.QtCore import Qt
 from pathlib import Path
 import helpers
 
+
 class About(object):
     """docstring for About."""
+
     def __init__(self, parent = None, **kwargs):
         super(About, self).__init__()
         self.parent = parent

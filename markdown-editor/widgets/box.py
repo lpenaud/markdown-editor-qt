@@ -3,6 +3,7 @@
 
 from PyQt5.Qt import QWidget, QBoxLayout
 
+
 class Box(QWidget):
     """docstring for BoxLayout."""
     def __init__(self, direction, parent = None):

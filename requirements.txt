@@ -1,3 +1,6 @@
 PyQt5 
 pyinstaller  
 pypandoc
+pylama
+pylama-pylint
+

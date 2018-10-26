@@ -4,6 +4,7 @@
 from PyQt5.Qt import QPlainTextEdit, QSizePolicy
 from PyQt5.QtCore import QTimer
 
+
 class TextEditor(QPlainTextEdit):
     """docstring for TextEditor."""
     def __init__(self, parent = None, text = '\n', tabStopDistance = 20):

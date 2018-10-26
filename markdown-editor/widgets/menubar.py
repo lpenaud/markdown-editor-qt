@@ -4,6 +4,7 @@
 from PyQt5.Qt import QMenuBar, QMenu, QIcon, QKeySequence, QAction
 from PyQt5.QtGui import QKeySequence
 
+
 class MenuBar(QMenuBar):
     """docstring for MenuBar."""
     def __init__(self, parent = None):
