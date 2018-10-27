@@ -21,6 +21,7 @@ class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
 
     documentIsSaveSig = pyqtSignal(str)
+    exportDocumentSig = pyqtSignal(str)
     documentTitleDefault = 'New document'
     defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
     configPath = helpers.joinpath_to_cwd('config.json')
@@ -53,7 +54,6 @@ class MarkdownEditor(widgets.MainWindow):
         self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
         self.addAction('edit-find', object.Action('Find', self.triggeredFind, 'Ctrl+F', 'edit-find'))
         self.addAction('edit-preference', object.Action('Preferences', self.triggeredPreference, 'Ctrl+,', 'preferences-system'))
-        self.addAction('view-refresh', object.Action('Refresh Preview', self.triggeredPreview))
         self.addAction('view-about', object.Action('About', self.triggeredAbout))
 
         with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf8') as requirements:
@@ -70,14 +70,18 @@ class MarkdownEditor(widgets.MainWindow):
                 dependencies=[l.strip() for l in requirements.readlines()],
             )
 
-        self.pandoc = Pandoc('markdown','html5',
+        self.pandoc = threads.PandocThread(
+            self,
+            'markdown',
+            'html5',
+            self.exportDocumentSig,
             template=str(helpers.joinpath_to_cwd('template', 'default.html')),
             lang=helpers.get_lang(),
             inline_css=helpers.joinpath_to_cwd('template', 'default.css').read_text(),
             toc=True,
             toc_title=True
         )
-        self.thread = threads.PandocThread(self, tmpfile)
+        self.pandoc.sig.connect(self.cbPandoc)
 
         self.saveThread = threads.SaveThread(self)
         self.saveThreading = True
@@ -97,7 +101,6 @@ class MarkdownEditor(widgets.MainWindow):
         self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-find'])
         self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
         self.menubar.appendMenu('View')
-        self.menubar.addActionToMenu('View', self.actions['view-refresh'])
         self.setMenuBar(self.menubar)
 
         self.toolbar = QToolBar(self)
@@ -106,7 +109,6 @@ class MarkdownEditor(widgets.MainWindow):
         self.toolbar.insertSeparator(self.actions['edit-cut'])
         self.toolbar.insertSeparator(self.actions['edit-undo'])
         self.toolbar.insertSeparator(self.actions['edit-find'])
-        self.toolbar.insertSeparator(self.actions['view-refresh'])
         self.toolbar.removeAction(self.actions['edit-preference'])
         self.addToolBar(self.toolbar)
 
@@ -119,12 +121,10 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             self.newDocument()
 
-        self.webview = widgets.WebView(self.subBox)
-        self.triggeredPreview()
-        self.webview.url = tmpfile.as_uri()
+        self.overview = widgets.Overview(self)
 
         self.subBox.addWidget(self.textEditor)
-        self.subBox.addWidget(self.webview)
+        self.subBox.addWidget(self.overview)
 
         self.box.addWidget(self.subBox)
         self.setCentralWidget(self.box)
@@ -202,7 +202,7 @@ class MarkdownEditor(widgets.MainWindow):
                 evt.ignore()
 
     def triggeredTextTimeout(self):
-        self.triggeredPreview()
+        self.exportDocumentSig.emit(self.textEditor.textContent)
         if self.saveThreading:
             self.saveThread.start()
 
@@ -236,11 +236,8 @@ class MarkdownEditor(widgets.MainWindow):
     def triggeredSaveDocument(self):
         self.saveDocument()
 
-    def triggeredPreview(self):
-        self.thread.start()
-
-    def cbPandocThread(self):
-        self.webview.reload()
+    def cbPandoc(self, result):
+        self.overview.html = result
 
     def triggeredExport(self):
         self.saveDocument()
@@ -301,7 +298,6 @@ def main():
     mainWin = MarkdownEditor(foption)
     mainWin.show()
     response = app.exec_()
-    helpers.local_uri_to_path(mainWin.webview.url).unlink()
     sys.exit(response)
 
 if __name__ == '__main__':

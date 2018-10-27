@@ -4,3 +4,4 @@ from .mainwindow import MainWindow
 from .menubar import MenuBar
 from .texteditor import TextEditor
 from .webview import WebView
+from .overview import Overview

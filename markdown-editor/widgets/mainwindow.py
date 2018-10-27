@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).addAction(self.actions[actionName])
 
     def addActions(self, actions):
-        for name,action in actions.items():
+        for name, action in actions.items():
             self.addAction(name, action)
 
     def findActionsLike(self, like):

@@ -18,7 +18,7 @@ class Preferences(QDialog):
         self.tab.addTab(self.themeChooser, 'Theme')
 
         self.saveOption = SaveOption(self.tab, self.parent().saveThreading)
-        self.tab.addTab(self.saveOption, 'Save')
+        self.tab.addTab(self.saveOption, 'Document')
         self.layout.addWidget(self.tab)
 
         self.buttonBox = QDialogButtonBox(self)
