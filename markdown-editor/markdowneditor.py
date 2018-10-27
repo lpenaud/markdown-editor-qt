@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 from PyQt5.Qt import (
-    QApplication,
     QBoxLayout,
     QToolBar,
     QLabel,
@@ -21,14 +19,13 @@ class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
 
     documentIsSaveSig = pyqtSignal(str)
-    exportDocumentSig = pyqtSignal(str)
+    exportDocumentSig = pyqtSignal(str, bool)
     documentTitleDefault = 'New document'
     defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
     configPath = helpers.joinpath_to_cwd('config.json')
 
     def __init__(self, pathnameSrc = None):
         super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
-        tmpfile = helpers.mktemp(prefix='markdown-editor', suffix='.html')
         self.box = widgets.Box(QBoxLayout.TopToBottom, self)
         self.subBox = widgets.Box(QBoxLayout.LeftToRight, self.box)
         self.textFileChooser = dialogs.TextFileChooser(self)
@@ -75,13 +72,8 @@ class MarkdownEditor(widgets.MainWindow):
             'markdown',
             'html5',
             self.exportDocumentSig,
-            template=str(helpers.joinpath_to_cwd('template', 'default.html')),
-            lang=helpers.get_lang(),
-            inline_css=helpers.joinpath_to_cwd('template', 'default.css').read_text(),
-            toc=True,
-            toc_title=True
         )
-        self.pandoc.sig.connect(self.cbPandoc)
+        self.pandoc.convertedText.connect(self.cbPandoc)
 
         self.saveThread = threads.SaveThread(self)
         self.saveThreading = True
@@ -93,23 +85,23 @@ class MarkdownEditor(widgets.MainWindow):
         self.menubar = widgets.MenuBar(self)
         self.menubar.appendMenu('File')
         self.menubar.addActionsToMenu('File', self.findActionsLike('file'))
-        self.menubar.insertSeparatorToMenu('File', self.actions['file-document-save'])
-        self.menubar.insertSeparatorToMenu('File', self.actions['file-export-html'])
+        self.menubar.insertSeparatorToMenu('File', self.getAction('file-document-save'))
+        self.menubar.insertSeparatorToMenu('File', self.getAction('file-export-html'))
         self.menubar.appendMenu('Edit')
         self.menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
-        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-cut'])
-        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-find'])
-        self.menubar.insertSeparatorToMenu('Edit', self.actions['edit-preference'])
+        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-cut'))
+        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-find'))
+        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-preference'))
         self.menubar.appendMenu('View')
         self.setMenuBar(self.menubar)
 
         self.toolbar = QToolBar(self)
-        self.toolbar.addActions(self.actions.values())
-        self.toolbar.insertSeparator(self.actions['file-export-html'])
-        self.toolbar.insertSeparator(self.actions['edit-cut'])
-        self.toolbar.insertSeparator(self.actions['edit-undo'])
-        self.toolbar.insertSeparator(self.actions['edit-find'])
-        self.toolbar.removeAction(self.actions['edit-preference'])
+        self.toolbar.addActions(self.actions())
+        self.toolbar.insertSeparator(self.getAction('file-export-html'))
+        self.toolbar.insertSeparator(self.getAction('edit-cut'))
+        self.toolbar.insertSeparator(self.getAction('edit-undo'))
+        self.toolbar.insertSeparator(self.getAction('edit-find'))
+        self.toolbar.removeAction(self.getAction('edit-preference'))
         self.addToolBar(self.toolbar)
 
         self.textEditor = widgets.TextEditor(self.subBox)
@@ -121,7 +113,7 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             self.newDocument()
 
-        self.overview = widgets.Overview(self)
+        self.overview = widgets.WebView(self)
 
         self.subBox.addWidget(self.textEditor)
         self.subBox.addWidget(self.overview)
@@ -166,7 +158,7 @@ class MarkdownEditor(widgets.MainWindow):
 
         if writable and not(self.documentIsSave):
             self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
-            self.documentIsSaveSig.emit('document-is-save')
+            self.documentIsSaveSig.emit(str(self.pathnameSrc))
 
     def openDocument(self):
         self.textFileChooser.mode = 'r'
@@ -202,7 +194,7 @@ class MarkdownEditor(widgets.MainWindow):
                 evt.ignore()
 
     def triggeredTextTimeout(self):
-        self.exportDocumentSig.emit(self.textEditor.textContent)
+        self.exportDocumentSig.emit(self.textEditor.textContent, False)
         if self.saveThreading:
             self.saveThread.start()
 
@@ -236,8 +228,10 @@ class MarkdownEditor(widgets.MainWindow):
     def triggeredSaveDocument(self):
         self.saveDocument()
 
-    def cbPandoc(self, result):
-        self.overview.html = result
+    def cbPandoc(self, converted_text, pathname):
+        if pathname:
+            print(pathname)
+        self.overview.html = converted_text
 
     def triggeredExport(self):
         self.saveDocument()
@@ -245,10 +239,14 @@ class MarkdownEditor(widgets.MainWindow):
             self.textFileChooser.setDefaultFilter(1)
             self.textFileChooser.setWindowTitle('Export html')
             if dialogs.isAccepted(self.textFileChooser.exec_()):
-                self.pandoc.convert_file(str(self.pathnameSrc), str(self.textFileChooser.pathname))
+                self.pandoc.pathname = self.textFileChooser.pathname
+                self.exportDocumentSig.emit(
+                    self.textEditor.textContent,
+                    True
+                )
 
     def triggeredThemeChanged(self, themeName):
-        for action in self.actions.values():
+        for action in self.actions():
             action.refreshIcons()
 
     def triggeredSaveOptionChanged(self, saveThreading):
@@ -268,37 +266,7 @@ class MarkdownEditor(widgets.MainWindow):
         config = helpers.serialize_json(MarkdownEditor.configPath)
         themeConfig = config['theme']
         documentConfig = config['document']
-        exportConfig = config['export']
-
+        self.pandoc.read_config(config['pandoc'])
         if not(themeConfig['name'] == 'SYSTEM'):
             self.preferenceDialog.themeChooser.comboBox.setCurrentText(themeConfig['name'])
-
         self.preferenceDialog.saveOption.checkBox.setChecked(documentConfig['autosave'])
-
-        self.pandoc.input_format = exportConfig['format']['input']
-        self.pandoc.output_format = exportConfig['format']['output']
-        self.pandoc.template = helpers.joinpath_to_cwd(*exportConfig['template'])
-        self.pandoc.lang = exportConfig['lang']
-        self.pandoc.inline_css = helpers.joinpath_to_cwd(*exportConfig['inline_css']).read_text()
-        self.pandoc.toc = exportConfig['toc']['toc']
-        self.pandoc.toc_title = exportConfig['toc']['title']
-
-def main():
-    foption = None
-    if len(sys.argv) > 1:
-        index = helpers.find_index(sys.argv, '-f')
-        if index > -1:
-            sys.argv.pop(index)
-            try:
-                foption = sys.argv[index]
-                sys.argv.pop(index)
-            except IndexError:
-                print('Warning: no file specified after -f option', file=sys.stderr)
-    app = QApplication(sys.argv)
-    mainWin = MarkdownEditor(foption)
-    mainWin.show()
-    response = app.exec_()
-    sys.exit(response)
-
-if __name__ == '__main__':
-    main()
