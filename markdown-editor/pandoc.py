@@ -3,43 +3,40 @@
 
 from pathlib import Path
 import pypandoc
+import helpers
 
 
 class Pandoc(object):
     """docstring for Pandoc."""
     def __init__(self, input_format, output_format, **kwargs):
-        super(Pandoc, self).__init__()
         self.input_format = input_format
         self.output_format = output_format
         self.template = kwargs.get('template')
-        self.lang = kwargs.get('lang')
         self.toc = kwargs.get('toc') == True
-        if self.toc:
-            self.toc_title = kwargs.get('toc_title')
-            if self.toc_title == True and self.lang:
-                self._auto_toc_title()
+        self.toc_title = kwargs.get('toc_title')
+        self.lang = kwargs.get('lang')
         self.css = kwargs.get('css')
         self.inline_css = kwargs.get('inline_css')
 
     @property
     def input_format(self):
-        return self._input_format
+        return self.__input_format
 
     @input_format.setter
     def input_format(self, input_format):
         if not(input_format in pypandoc.get_pandoc_formats()[0]):
             raise ValueError('{} is not supported like input formats'.format(input_format))
-        self._input_format = input_format
+        self.__input_format = input_format
 
     @property
     def output_format(self):
-        return self._output_format
+        return self.__output_format
 
     @output_format.setter
     def output_format(self, output_format):
         if not(output_format in pypandoc.get_pandoc_formats()[1]):
             raise ValueError('{} is not supported like output format'.format(output_format))
-        self._output_format = output_format
+        self.__output_format = output_format
 
     @property
     def template(self):
@@ -57,7 +54,7 @@ class Pandoc(object):
 
     @property
     def css(self):
-        return self._css
+        return self.__css
 
     @css.setter
     def css(self, css):
@@ -65,21 +62,44 @@ class Pandoc(object):
             pathname = Path(css).absolute()
             if not(pathname.exists()):
                 raise ValueError('{} doesn\'t exists'.format(css))
-            self._css = str(pathname)
+            self.__css = str(pathname)
         else:
-            self._css = None
+            self.__css = None
 
-    def _auto_toc_title(self):
-        titles = {
-            'fr': 'Sommaire',
-            'default': 'Table of contents'
-        }
-        if titles.get(self.lang):
-            self.toc_title = titles.get(self.lang)
+    @property
+    def toc_title(self):
+        return self.__toc_title
+
+    @toc_title.setter
+    def toc_title(self, toc_title):
+        if toc_title == True:
+            self.auto_toc_title()
+        elif type(toc_title) is str:
+            self.__toc_title = toc_title
         else:
-            self.toc_title = titles.get('default')
+            self.__toc_title = None
 
-    def _add_var_args(self, name, value):
+    @property
+    def lang(self):
+        return self.__lang
+
+    @lang.setter
+    def lang(self, lang):
+        self.__lang = lang
+        self.auto_toc_title()
+
+    def auto_toc_title(self):
+        if self.toc and self.lang:
+            titles = {
+                'fr': 'Sommaire',
+                'default': 'Table of contents'
+            }
+            if titles.get(self.lang):
+                self.__toc_title = titles.get(self.lang)
+            else:
+                self.__toc_title = titles.get('default')
+
+    def __add_var_args(self, name, value):
         return ('-V', '{}={}'.format(name, value))
 
     def __generate_args(self):
@@ -87,15 +107,15 @@ class Pandoc(object):
         if self.template:
             args.extend(('--template', self.template))
         if self.lang:
-            args.extend(self._add_var_args('lang', self.lang))
+            args.extend(self.__add_var_args('lang', self.lang))
         if self.toc:
             args.append('--toc')
             if self.toc_title:
-                args.extend(self._add_var_args('toc-title', self.toc_title))
+                args.extend(self.__add_var_args('toc-title', self.toc_title))
         if self.css:
-            args.extend(self._add_var_args('css', self.css))
+            args.extend(self.__add_var_args('css', self.css))
         if self.inline_css:
-            args.extend(self._add_var_args('inline-css', self.inline_css))
+            args.extend(self.__add_var_args('inline-css', self.inline_css))
         return args
 
     def convert_text(self, text, outputfile=None):
@@ -106,6 +126,19 @@ class Pandoc(object):
         if not(pathname.exists()):
             raise ValueError('{} doesn\'t exists'.format(inputfile))
         pypandoc.convert_file(str(pathname), self.output_format, self.input_format, self.__generate_args(), 'utf-8', outputfile)
+
+    def read_config(self, config):
+        self.input_format = config['format']['input']
+        self.output_format = config['format']['output']
+        self.template = Path(*config['template']).absolute()
+        if config['lang'] == 'SYSTEM':
+            self.lang = helpers.get_lang()
+        else:
+            self.lang = config['lang']
+        self.inline_css = Path(*config['css']['inline']).read_text(encoding='utf8')
+        self.toc = config['toc']['toc']
+        self.toc_title = config['toc']['title']
+
 
 
 def main():
