@@ -13,6 +13,9 @@ import json
 def is_frozen():
     return hasattr(sys, 'frozen')
 
+def absolute_path(path):
+    return Path(path).absolute()
+
 def check_if_encoding_exist(encoding):
     return encoding in aliases.keys() or encoding in aliases.values()
 
