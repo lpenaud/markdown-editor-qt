@@ -10,4 +10,3 @@ class SaveThread(Thread):
     def run(self):
         if self.parent().pathnameSrc:
             self.parent().saveDocument()
-            self.sig.emit('save-document')
