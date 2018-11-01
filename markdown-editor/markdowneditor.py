@@ -11,7 +11,6 @@ import widgets
 import dialogs
 import threads
 import helpers
-import object
 from pandoc import Pandoc
 
 
@@ -39,19 +38,105 @@ class MarkdownEditor(widgets.MainWindow):
         self.labelDocumentState = QLabel(self.box)
         self.box.addWidget(self.labelDocumentState)
 
-        self.addAction('file-document-new', object.Action('New document', self.newDocument, 'Ctrl+N', 'document-new'))
-        self.addAction('file-document-open', object.Action('Open document', self.triggeredOpenDocument, 'Ctrl+O', 'document-open'))
-        self.addAction('file-document-save', object.Action('Save document', self.triggeredSaveDocument, 'Ctrl+S', 'document-save'))
-        self.addAction('file-document-save-as', object.Action('Save document as', self.triggeredSaveAsDocument, 'Ctrl+Shift+S', 'document-save-as'))
-        self.addAction('file-export-html', object.Action('Export in html', self.triggeredExport))
-        self.addAction('edit-undo', object.Action('Undo', self.triggeredUndo, 'Ctrl+Z', 'edit-undo'))
-        self.addAction('edit-redo', object.Action('Redo', self.triggeredRedo, 'Ctrl+Y', 'edit-redo'))
-        self.addAction('edit-cut', object.Action('Cut', self.triggeredCut, 'Ctrl+X', 'edit-cut'))
-        self.addAction('edit-copy', object.Action('Copy', self.triggeredCopy, 'Ctrl+C', 'edit-copy'))
-        self.addAction('edit-paste', object.Action('Paste', self.triggeredPaste, 'Ctrl+V', 'edit-paste'))
-        self.addAction('edit-find', object.Action('Find', self.triggeredFind, 'Ctrl+F', 'edit-find'))
-        self.addAction('edit-preference', object.Action('Preferences', self.triggeredPreference, 'Ctrl+,', 'preferences-system'))
-        self.addAction('view-about', object.Action('About', self.triggeredAbout))
+        self.addAction('file-document-new',
+            label='New document',
+            onTriggered=self.newDocument,
+            keysequence='Ctrl+N',
+            iconName='document-new'
+        )
+        self.addAction('file-document-open',
+            label='Open document',
+            onTriggered=self.triggeredOpenDocument,
+            keysequence='Ctrl+O',
+            iconName='document-open'
+        )
+        self.addAction('file-document-save',
+            label='Save document',
+            onTriggered=self.triggeredSaveDocument,
+            keysequence='Ctrl+S',
+            iconName='document-save'
+        )
+        self.addAction('file-document-save-as',
+            label='Save document as',
+            onTriggered=self.triggeredSaveAsDocument,
+            keysequence='Ctrl+Shift+S',
+            iconName='document-save-as'
+        )
+        self.addAction('file-export-html',
+            label='Export in html',
+            onTriggered=self.triggeredExport
+        )
+        self.populateMenubar('file', (
+            'file-document-new',
+            'file-document-open',
+            'separator',
+            'file-document-save',
+            'file-document-save-as',
+            'separator',
+            'file-export-html',
+        ))
+
+        self.addAction('edit-undo',
+            label='Undo',
+            onTriggered=self.triggeredUndo,
+            keysequence='Ctrl+Z',
+            iconName='edit-undo'
+        )
+        self.addAction('edit-redo',
+            label='Redo',
+            onTriggered=self.triggeredRedo,
+            keysequence='Ctrl+Y',
+            iconName='edit-redo'
+        )
+        self.addAction('edit-cut',
+            label='Cut',
+            onTriggered=self.triggeredCut,
+            keysequence='Ctrl+X',
+            iconName='edit-cut'
+        )
+        self.addAction('edit-copy',
+            label='Copy',
+            onTriggered=self.triggeredCopy,
+            keysequence='Ctrl+C',
+            iconName='edit-copy'
+        )
+        self.addAction('edit-paste',
+            label='Paste',
+            onTriggered=self.triggeredPaste,
+            keysequence='Ctrl+V',
+            iconName='edit-paste'
+        )
+        self.addAction('edit-find',
+            label='Find',
+            onTriggered=self.triggeredFind,
+            keysequence='Ctrl+F',
+            iconName='edit-find'
+        )
+        self.addAction('edit-preference',
+            label='Preferences',
+            onTriggered=self.triggeredPreference,
+            keysequence='Ctrl+,',
+            iconName='preferences-system'
+        )
+        self.populateMenubar('edit', (
+            'edit-undo',
+            'edit-redo',
+            'separator',
+            'edit-cut',
+            'edit-copy',
+            'edit-paste',
+            'separator',
+            'edit-find',
+            'separator',
+            'edit-preference',
+        ))
+
+        self.addAction('help-about',
+            label='About',
+            onTriggered=self.triggeredAbout,
+            iconName='help-about'
+        )
+        self.populateMenubar('help', ('help-about',))
 
         with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf8') as requirements:
             self.aboutDialog = dialogs.About(self,
@@ -82,30 +167,24 @@ class MarkdownEditor(widgets.MainWindow):
         self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
         self.preferenceDialog.saveOption.saveOptionChanged.connect(self.triggeredSaveOptionChanged)
 
-        self.menubar = widgets.MenuBar(self)
-        self.menubar.appendMenu('File')
-        self.menubar.addActionsToMenu('File', self.findActionsLike('file'))
-        self.menubar.insertSeparatorToMenu('File', self.getAction('file-document-save'))
-        self.menubar.insertSeparatorToMenu('File', self.getAction('file-export-html'))
-        self.menubar.appendMenu('Edit')
-        self.menubar.addActionsToMenu('Edit', self.findActionsLike('edit'))
-        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-cut'))
-        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-find'))
-        self.menubar.insertSeparatorToMenu('Edit', self.getAction('edit-preference'))
-        self.menubar.appendMenu('View')
-        self.setMenuBar(self.menubar)
-
-        self.toolbar = QToolBar(self)
-        self.toolbar.addActions(self.actions())
-        self.toolbar.insertSeparator(self.getAction('file-export-html'))
-        self.toolbar.insertSeparator(self.getAction('edit-cut'))
-        self.toolbar.insertSeparator(self.getAction('edit-undo'))
-        self.toolbar.insertSeparator(self.getAction('edit-find'))
-        self.toolbar.removeAction(self.getAction('edit-preference'))
-        self.addToolBar(self.toolbar)
+        self.addToolBar('general')
+        self.populateToolbar('general', (
+            'file-document-new',
+            'file-document-open',
+            'separator',
+            'file-document-save',
+            'separator',
+            'edit-undo',
+            'edit-redo',
+            'separator',
+            'edit-cut',
+            'edit-copy',
+            'edit-paste',
+            'separator',
+            'edit-find',
+        ))
 
         self.textEditor = widgets.TextEditor(self.subBox)
-        self.textEditor.setDocumentTitle('New document')
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
         self.textEditor.textChanged.connect(self.triggeredTextChanged)
         if self.pathnameSrc:
