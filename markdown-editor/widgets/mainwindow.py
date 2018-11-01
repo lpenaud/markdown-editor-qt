@@ -43,3 +43,16 @@ class MainWindow(QMainWindow):
             if like in key:
                 result.append(self.getAction(key))
         return result
+
+    def populateMenubar(self, menuName, actionNames):
+        categorie = menuName.lower()
+        menuTitle = menuName.title()
+        self.menubar.addMenu(menuTitle)
+        for actionName in actionNames:
+            if actionName == 'separator':
+                self.menubar.addSeparatorToMenu(menuTitle)
+            else:
+                self.menubar.addActionToMenu(
+                    menuTitle,
+                    self.__actions[actionName]
+                )
