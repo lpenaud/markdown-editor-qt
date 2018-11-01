@@ -56,3 +56,8 @@ class MainWindow(QMainWindow):
                     menuTitle,
                     self.__actions[actionName]
                 )
+
+    def findToolbar(self, title):
+        for bar in self.findChildren(QToolBar):
+            if bar.windowTitle() == title:
+                return bar
