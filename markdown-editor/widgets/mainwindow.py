@@ -61,3 +61,11 @@ class MainWindow(QMainWindow):
         for bar in self.findChildren(QToolBar):
             if bar.windowTitle() == title:
                 return bar
+
+    def populateToolbar(self, toolbarName, actionNames):
+        toolbar = self.findToolbar(toolbarName)
+        for actionName in actionNames:
+            if actionName == 'separator':
+                toolbar.addSeparator()
+            else:
+                toolbar.addAction(self.__actions[actionName])
