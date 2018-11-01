@@ -17,12 +17,12 @@ QIcon.setThemeName(get_current_system_icon_theme())
 
 class Action(QAction):
     """docstring for Action."""
-    def __init__(self, label = None, onTriggered = None, keysequence = None, iconName = None, parent = None):
+    def __init__(self, parent, **kwargs):
         super(Action, self).__init__(parent)
-        self.label = label
-        self.triggered.connect(onTriggered)
-        self.keysequence = keysequence
-        self.iconName = iconName
+        self.label = kwargs.get('label')
+        self.triggered.connect(kwargs.get('onTriggered'))
+        self.keysequence = kwargs.get('keysequence')
+        self.iconName = kwargs.get('iconName')
 
     @property
     def label(self):
