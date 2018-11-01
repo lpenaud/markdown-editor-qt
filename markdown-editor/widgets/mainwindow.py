@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QToolBar
+from .menubar import MenuBar
+from object import Action
 
 
 class MainWindow(QMainWindow):
@@ -11,9 +13,21 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(title)
         self.setMinimumSize(minw, minh)
         self.__actions = {}
+        self.menubar = MenuBar(self)
 
-    def addAction(self, actionName, action):
-        self.__actions[actionName] = action
+    @property
+    def menubar(self):
+        return self.menuBar()
+
+    @menubar.setter
+    def menubar(self, menuBar):
+        self.setMenuBar(menuBar)
+
+    def addAction(self, actionName, action=None, **kwargs):
+        if action:
+            self.__actions[actionName] = action
+        else:
+            self.__actions[actionName] = Action(self, **kwargs)
         super(MainWindow, self).addAction(self.__actions[actionName])
 
     def addActions(self, actions):
