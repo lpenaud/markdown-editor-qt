@@ -1,6 +1,7 @@
 /*
  * I add this to html files generated with pandoc. (https://gist.github.com/killercup/5917178)
  * See : https://pandoc.org/demos.html
+ * Modified by lpenaud<l.penaud@zaclys.com>
  */
 
 html {
@@ -126,7 +127,7 @@ pre, code, kbd, samp {
 	color: #000;
 	font-family: monospace, monospace;
 	_font-family: 'courier new', monospace;
-	font-size: 0.98em;
+	font-size: 0.85em;
 }
 
 pre {
@@ -264,7 +265,6 @@ table td {
 @media print {
 	* {
 	background: transparent !important;
-	color: black !important;
 	filter: none !important;
 	-ms-filter: none !important;
 	}
@@ -326,4 +326,13 @@ table td {
 	h2, h3 {
 	page-break-after: avoid;
 	}
+}
+
+ul.equation {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.overline {
+    text-decoration: overline;
 }
