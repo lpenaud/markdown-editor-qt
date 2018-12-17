@@ -45,10 +45,10 @@ class Pandoc(object):
     @template.setter
     def template(self, template):
         if template:
-            pathname = Path(template).absolute()
-            if not(pathname.exists()):
+            p = Path(template).absolute()
+            if not(p.exists()):
                 raise ValueError('{} doesn\'t exist'.format(template))
-            self.__template = str(pathname)
+            self.__template = p
         else:
             self.__template = None
 
@@ -59,10 +59,10 @@ class Pandoc(object):
     @css.setter
     def css(self, css):
         if css:
-            pathname = Path(css).absolute()
-            if not(pathname.exists()):
+            p = Path(css).absolute()
+            if not(p.exists()):
                 raise ValueError('{} doesn\'t exists'.format(css))
-            self.__css = str(pathname)
+            self.__css = p
         else:
             self.__css = None
 
@@ -105,7 +105,7 @@ class Pandoc(object):
     def __generate_args(self):
         args = []
         if self.template:
-            args.extend(('--template', self.template))
+            args.extend(('--template', str(self.template)))
         if self.lang:
             args.extend(self.__add_var_args('lang', self.lang))
         if self.toc:
@@ -113,9 +113,10 @@ class Pandoc(object):
             if self.toc_title:
                 args.extend(self.__add_var_args('toc-title', self.toc_title))
         if self.css:
-            args.extend(self.__add_var_args('css', self.css))
-        if self.inline_css:
-            args.extend(self.__add_var_args('inline-css', self.inline_css))
+            if self.inline_css:
+                args.extend(self.__add_var_args('inline-css', self.css.read_text()))
+            else:
+                args.extend(self.__add_var_args('css', str(self.css)))
         return args
 
     def convert_text(self, text, outputfile=None):
@@ -135,7 +136,8 @@ class Pandoc(object):
             self.lang = helpers.get_lang()
         else:
             self.lang = config['lang']
-        self.inline_css = Path(*config['css']['inline']).read_text(encoding='utf8')
+        self.css = Path(*config['css']['css']).absolute()
+        self.inline_css = config['css']['inline']
         self.toc = config['toc']['toc']
         self.toc_title = config['toc']['title']
 
@@ -143,9 +145,10 @@ class Pandoc(object):
 
 def main():
     extra_args = {
-        'template': str(Path.joinpath(Path.cwd(), 'template', 'default.html')),
+        'template': Path.joinpath(Path.cwd(), 'template', 'default.html'),
         'lang': 'en',
-        'inline_css': Path.joinpath(Path.cwd(), 'template', 'default.css').read_text()
+        'css': Path.joinpath(Path.cwd(), 'template', 'default.css'),
+        'inline_css': True
     }
     src = '# This is a h1'
     pandoc = Pandoc('markdown', 'html5', **extra_args)
