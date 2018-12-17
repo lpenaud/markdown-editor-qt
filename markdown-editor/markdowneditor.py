@@ -349,9 +349,9 @@ class MarkdownEditor(widgets.MainWindow):
 
     def readConfig(self):
         config = helpers.serialize_json(MarkdownEditor.configPath)
-        themeConfig = config['theme']
+        theme = config['theme']
         documentConfig = config['document']
         self.pandoc.read_config(config['pandoc'])
-        if not(themeConfig['name'] == 'SYSTEM'):
-            self.preferenceDialog.themeChooser.comboBox.setCurrentText(themeConfig['name'])
+        if not(theme == 'SYSTEM'):
+            self.preferenceDialog.themeChooser.comboBox.setCurrentText(theme)
         self.preferenceDialog.saveOption.checkBox.setChecked(documentConfig['autosave'])

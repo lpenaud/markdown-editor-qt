@@ -1,25 +1,29 @@
 {
-    "theme": {
-        "name": "SYSTEM"
-    },
     "document": {
         "autosave": true,
         "encoding": "utf8"
     },
     "pandoc": {
+        "css": {
+            "css": [
+                "template",
+                "default.css"
+            ],
+            "inline": true
+        },
         "format": {
             "input": "markdown",
             "output": "html5"
         },
-        "template": ["template", "default.html"],
         "lang": "SYSTEM",
-        "css": {
-            "inline": ["template", "default.css"],
-            "css": null
-        },
+        "template": [
+            "template",
+            "default.html"
+        ],
         "toc": {
-            "toc": true,
-            "title": true
+            "title": true,
+            "toc": true
         }
-    }
+    },
+    "theme": "SYSTEM"
 }
