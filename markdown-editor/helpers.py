@@ -86,5 +86,13 @@ def get_username():
 def serialize_json(pathname, encoding='utf8'):
     path = Path(pathname).absolute()
     if not(path.exists()):
-        raise ValueError("{} doesn't exist")
+        raise ValueError("{} doesn't exist".format(str(path)))
     return json.loads(path.read_text(encoding=encoding), encoding=encoding)
+
+def encoding_json(pathname, obj, pretty, encoding='utf8'):
+    path = Path(pathname).absolute()
+    if pretty:
+        data = json.dumps(obj, sort_keys=True, indent=4)
+    else:
+        data = json.dumps(obj, separators=(',', ':'))
+    path.write_text(data, encoding)
