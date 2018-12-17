@@ -31,6 +31,7 @@ class Preferences(QDialog):
 
         self.setMinimumWidth(self.tab.widget(0).width())
         self.setMinimumHeight(self.tab.widget(0).height())
+        self.setWindowTitle("Preferences")
 
     def acceptButtonTriggered(self):
         self.accept()
