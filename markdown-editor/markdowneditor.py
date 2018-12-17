@@ -35,9 +35,44 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             self.pathnameSrc = None
             self.documentTitle = MarkdownEditor.documentTitleDefault
-
         self.labelDocumentState = QLabel(self.box)
         self.box.addWidget(self.labelDocumentState)
+
+        self.pandoc = threads.PandocThread(
+            self,
+            'markdown',
+            'html5',
+            self.exportDocumentSig,
+        )
+        self.pandoc.convertedText.connect(self.cbPandoc)
+        self.pandoc.pathname = tempfile
+
+        self.saveThread = threads.SaveThread(self)
+        self.saveThreading = True
+
+        self.preferenceDialog = dialogs.Preferences(self)
+        self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
+        self.preferenceDialog.saveOption.saveOptionChanged.connect(self.triggeredSaveOptionChanged)
+
+        self.textEditor = widgets.TextEditor(self.subBox)
+        self.textEditor.timeout.connect(self.triggeredTextTimeout)
+        self.textEditor.textChanged.connect(self.triggeredTextChanged)
+        if self.pathnameSrc:
+            self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
+        else:
+            self.newDocument()
+
+        self.overview = widgets.WebView(self)
+        self.overview.url = tempfile.as_uri()
+
+        self.subBox.addWidget(self.textEditor)
+        self.subBox.addWidget(self.overview)
+
+        self.box.addWidget(self.subBox)
+        self.setCentralWidget(self.box)
+        self.documentIsSave = True
+        self.documentIsSaveSig.connect(self.documentIsSaveSigCb)
+        self.readConfig()
 
         self.addAction('file-document-new',
             label='New document',
@@ -65,7 +100,9 @@ class MarkdownEditor(widgets.MainWindow):
         )
         self.addAction('file-export-html',
             label='Export in html',
-            onTriggered=self.triggeredExport
+            onTriggered=self.triggeredExport,
+            iconName='text-html'
+        )
         )
         self.populateMenubar('file', (
             'file-document-new',
@@ -132,6 +169,29 @@ class MarkdownEditor(widgets.MainWindow):
             'edit-preference',
         ))
 
+        self.addAction('view-zoom-in',
+            label="Zoom in",
+            onTriggered=self.triggeredZoomIn,
+            keysequence='Ctrl++',
+            iconName='zoom-in'
+        )
+        self.addAction('view-zoom-out',
+            label="Zoom out",
+            onTriggered=self.triggeredZoomOut,
+            keysequence='Ctrl+-',
+            iconName='zoom-out'
+        )
+        self.addAction('view-zoom-original',
+            label="Reset zoom",
+            onTriggered=self.triggeredZoomOriginal,
+            iconName='zoom-original'
+        )
+        self.populateMenubar('view', (
+            'view-zoom-in',
+            'view-zoom-out',
+            'view-zoom-original',
+        ))
+
         self.addAction('help-about',
             label='About',
             onTriggered=self.triggeredAbout,
@@ -153,22 +213,6 @@ class MarkdownEditor(widgets.MainWindow):
                 dependencies=[l.strip() for l in requirements.readlines()],
             )
 
-        self.pandoc = threads.PandocThread(
-            self,
-            'markdown',
-            'html5',
-            self.exportDocumentSig,
-        )
-        self.pandoc.convertedText.connect(self.cbPandoc)
-        self.pandoc.pathname = tempfile
-
-        self.saveThread = threads.SaveThread(self)
-        self.saveThreading = True
-
-        self.preferenceDialog = dialogs.Preferences(self)
-        self.preferenceDialog.themeChooser.themeChanged.connect(self.triggeredThemeChanged)
-        self.preferenceDialog.saveOption.saveOptionChanged.connect(self.triggeredSaveOptionChanged)
-
         self.addToolBar('general')
         self.populateToolbar('general', (
             'file-document-new',
@@ -184,27 +228,11 @@ class MarkdownEditor(widgets.MainWindow):
             'edit-paste',
             'separator',
             'edit-find',
+            'separator',
+            'view-zoom-in',
+            'view-zoom-out',
+            'view-zoom-original',
         ))
-
-        self.textEditor = widgets.TextEditor(self.subBox)
-        self.textEditor.timeout.connect(self.triggeredTextTimeout)
-        self.textEditor.textChanged.connect(self.triggeredTextChanged)
-        if self.pathnameSrc:
-            self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
-        else:
-            self.newDocument()
-
-        self.overview = widgets.WebView(self)
-        self.overview.url = tempfile.as_uri()
-
-        self.subBox.addWidget(self.textEditor)
-        self.subBox.addWidget(self.overview)
-
-        self.box.addWidget(self.subBox)
-        self.setCentralWidget(self.box)
-        self.documentIsSave = True
-        self.documentIsSaveSig.connect(self.documentIsSaveSigCb)
-        self.readConfig()
 
     @property
     def documentIsSave(self):
@@ -278,8 +306,11 @@ class MarkdownEditor(widgets.MainWindow):
             else:
                 evt.ignore()
 
-    def triggeredTextTimeout(self):
+    def triggeredRefreshPreview(self):
         self.exportDocumentSig.emit(self.textEditor.textContent, True)
+
+    def triggeredTextTimeout(self):
+        self.triggeredRefreshPreview()
         if self.saveThreading:
             self.saveThread.start()
 
@@ -347,6 +378,15 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredAbout(self):
         self.aboutDialog.exec_()
+
+    def triggeredZoomIn(self):
+        self.textEditor.zoomIn()
+
+    def triggeredZoomOut(self):
+        self.textEditor.zoomOut()
+
+    def triggeredZoomOriginal(self):
+        self.textEditor.zoomOriginal()
 
     def readConfig(self):
         config = helpers.serialize_json(MarkdownEditor.configPath)
