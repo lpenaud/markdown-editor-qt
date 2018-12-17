@@ -35,6 +35,7 @@ class MarkdownEditor(widgets.MainWindow):
         else:
             self.pathnameSrc = None
             self.documentTitle = MarkdownEditor.documentTitleDefault
+        self.pdfConvert = 0
         self.labelDocumentState = QLabel(self.box)
         self.box.addWidget(self.labelDocumentState)
 
@@ -64,6 +65,7 @@ class MarkdownEditor(widgets.MainWindow):
 
         self.overview = widgets.WebView(self)
         self.overview.url = tempfile.as_uri()
+        self.overview.page().pdfPrintingFinished.connect(self.pdfPrintingFinished)
 
         self.subBox.addWidget(self.textEditor)
         self.subBox.addWidget(self.overview)
@@ -103,6 +105,10 @@ class MarkdownEditor(widgets.MainWindow):
             onTriggered=self.triggeredExport,
             iconName='text-html'
         )
+        self.addAction('file-export-pdf',
+            label="Export in pdf",
+            onTriggered=self.triggeredExportPdf,
+            iconName='x-office-document'
         )
         self.populateMenubar('file', (
             'file-document-new',
@@ -112,6 +118,7 @@ class MarkdownEditor(widgets.MainWindow):
             'file-document-save-as',
             'separator',
             'file-export-html',
+            'file-export-pdf',
         ))
 
         self.addAction('edit-undo',
@@ -324,6 +331,10 @@ class MarkdownEditor(widgets.MainWindow):
         if self.saveThreading:
             self.saveThread.start()
 
+    def pdfPrintingFinished(self, filepath, sucess):
+        if sucess:
+            print("Document crée : {}".format(filepath))
+
     def triggeredTextChanged(self):
         self.documentIsSave = False
 
@@ -356,6 +367,9 @@ class MarkdownEditor(widgets.MainWindow):
 
     def cbPandoc(self, converted_text, pathname):
         self.overview.reload()
+        if self.pdfConvert > 0:
+            self.overview.page().printToPdf('index.pdf')
+            self.pdfConvert -= 1
 
     def triggeredExport(self):
         self.saveDocument()
@@ -370,6 +384,11 @@ class MarkdownEditor(widgets.MainWindow):
                     True
                 )
                 self.pandoc.pathname = tmpfile
+
+    def triggeredExportPdf(self):
+        self.saveDocument()
+        self.triggeredRefreshPreview()
+        self.pdfConvert += 1
 
     def triggeredThemeChanged(self, themeName):
         for action in self.actions():
