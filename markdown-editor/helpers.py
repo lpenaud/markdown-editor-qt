@@ -96,3 +96,12 @@ def encoding_json(pathname, obj, pretty, encoding='utf8'):
     else:
         data = json.dumps(obj, separators=(',', ':'))
     path.write_text(data, encoding)
+
+def get_list_from_path(path):
+    parents = []
+    for p in path.parents:
+        if p.name:
+            parents.insert(0, p.name)
+    parents.insert(0, path.anchor)
+    parents.append(path.name)
+    return parents
