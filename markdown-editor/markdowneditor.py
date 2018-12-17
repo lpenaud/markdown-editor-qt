@@ -343,6 +343,7 @@ class MarkdownEditor(widgets.MainWindow):
             self.preferenceDialog.rollback()
         elif dialogs.isAccepted(response):
             self.preferenceDialog.commit()
+            self.writeConfig()
 
     def triggeredAbout(self):
         self.aboutDialog.exec_()
@@ -355,3 +356,17 @@ class MarkdownEditor(widgets.MainWindow):
         if not(theme == 'SYSTEM'):
             self.preferenceDialog.themeChooser.comboBox.setCurrentText(theme)
         self.preferenceDialog.saveOption.checkBox.setChecked(documentConfig['autosave'])
+
+    def writeConfig(self):
+        helpers.encoding_json(
+            MarkdownEditor.configPath,
+            {
+                'document': {
+                    'autosave': self.preferenceDialog.saveOption.checkBox.isChecked(),
+                    'encoding': 'utf8'
+                },
+                'pandoc': self.pandoc.get_config(),
+                'theme': self.preferenceDialog.themeChooser.comboBox.currentText()
+            },
+            True
+        )
