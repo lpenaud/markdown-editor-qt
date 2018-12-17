@@ -28,6 +28,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.box = widgets.Box(QBoxLayout.TopToBottom, self)
         self.subBox = widgets.Box(QBoxLayout.LeftToRight, self.box)
         self.textFileChooser = dialogs.TextFileChooser(self)
+        tempfile = helpers.mktemp(suffix='.html')
         if pathnameSrc:
             self.pathnameSrc = helpers.Path(pathnameSrc).absolute()
             self.documentTitle = self.pathnameSrc.name
@@ -159,6 +160,7 @@ class MarkdownEditor(widgets.MainWindow):
             self.exportDocumentSig,
         )
         self.pandoc.convertedText.connect(self.cbPandoc)
+        self.pandoc.pathname = tempfile
 
         self.saveThread = threads.SaveThread(self)
         self.saveThreading = True
@@ -193,6 +195,7 @@ class MarkdownEditor(widgets.MainWindow):
             self.newDocument()
 
         self.overview = widgets.WebView(self)
+        self.overview.url = tempfile.as_uri()
 
         self.subBox.addWidget(self.textEditor)
         self.subBox.addWidget(self.overview)
@@ -261,19 +264,22 @@ class MarkdownEditor(widgets.MainWindow):
 
     def closeEvent(self, evt):
         if self.documentIsSave:
+            self.pandoc.pathname.unlink()
             evt.accept()
         else:
             response = dialogs.MessageBox.documentIsNotSave(self)
             if dialogs.MessageBox.isDiscardClicked(response):
+                self.pandoc.pathname.unlink()
                 evt.accept()
             elif dialogs.MessageBox.isSaveClicked(response):
                 self.saveDocument()
+                self.pandoc.pathname.unlink()
                 evt.accept()
             else:
                 evt.ignore()
 
     def triggeredTextTimeout(self):
-        self.exportDocumentSig.emit(self.textEditor.textContent, False)
+        self.exportDocumentSig.emit(self.textEditor.textContent, True)
         if self.saveThreading:
             self.saveThread.start()
 
@@ -308,9 +314,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.saveDocument()
 
     def cbPandoc(self, converted_text, pathname):
-        if pathname:
-            print(pathname)
-        self.overview.html = converted_text
+        self.overview.reload()
 
     def triggeredExport(self):
         self.saveDocument()
@@ -318,11 +322,13 @@ class MarkdownEditor(widgets.MainWindow):
             self.textFileChooser.setDefaultFilter(1)
             self.textFileChooser.setWindowTitle('Export html')
             if dialogs.isAccepted(self.textFileChooser.exec_()):
+                tmpfile = self.pandoc.pathname
                 self.pandoc.pathname = self.textFileChooser.pathname
                 self.exportDocumentSig.emit(
                     self.textEditor.textContent,
                     True
                 )
+                self.pandoc.pathname = tmpfile
 
     def triggeredThemeChanged(self, themeName):
         for action in self.actions():
