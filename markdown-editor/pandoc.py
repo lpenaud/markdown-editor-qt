@@ -141,6 +141,24 @@ class Pandoc(object):
         self.toc = config['toc']['toc']
         self.toc_title = config['toc']['title']
 
+    def get_config(self):
+        return {
+            'format': {
+                'input': self.input_format,
+                'output': self.output_format,
+            },
+            'template': helpers.get_list_from_path(self.template),
+            'lang': self.lang,
+            'css': {
+                'inline': self.inline_css,
+                'css': helpers.get_list_from_path(self.css)
+            },
+            'toc': {
+                'toc': self.toc,
+                'title': self.toc_title
+            }
+        }
+
 
 
 def main():
