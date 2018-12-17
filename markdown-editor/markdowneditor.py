@@ -169,6 +169,12 @@ class MarkdownEditor(widgets.MainWindow):
             'edit-preference',
         ))
 
+        self.addAction('view-refresh-preview',
+            label="Refresh preview",
+            onTriggered=self.triggeredRefreshPreview,
+            keysequence='F5',
+            iconName='view-refresh'
+        )
         self.addAction('view-zoom-in',
             label="Zoom in",
             onTriggered=self.triggeredZoomIn,
@@ -187,6 +193,8 @@ class MarkdownEditor(widgets.MainWindow):
             iconName='zoom-original'
         )
         self.populateMenubar('view', (
+            'view-refresh-preview',
+            'separator',
             'view-zoom-in',
             'view-zoom-out',
             'view-zoom-original',
@@ -232,6 +240,8 @@ class MarkdownEditor(widgets.MainWindow):
             'view-zoom-in',
             'view-zoom-out',
             'view-zoom-original',
+            'separator',
+            'view-refresh-preview',
         ))
 
     @property
