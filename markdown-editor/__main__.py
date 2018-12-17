@@ -4,9 +4,9 @@
 import sys
 from pathlib import Path
 from PyQt5.Qt import QApplication
-from helpers import is_frozen
+import helpers
 
-if is_frozen():
+if helpers.is_frozen():
     sys.path.insert(0, str(Path(__file__).parent().parent()))
 else:
     sys.path.insert(0, '.')
