@@ -21,6 +21,7 @@ class TextEditor(QPlainTextEdit):
         self.textChanged.connect(self.onTextChanged)
         self.__timer.setSingleShot(True)
         self.htmlFind = '<span style="background-color: turquoise;">{}</span>'
+        self.__zoomLevel = 0
 
     @property
     def textContent(self):
@@ -50,3 +51,17 @@ class TextEditor(QPlainTextEdit):
         cursor.beginEditBlock()
         self.__find(text, cursor, findFlag)
         cursor.endEditBlock()
+
+    def zoomIn(self, range=1):
+        super(TextEditor, self).zoomIn(range)
+        self.__zoomLevel += range
+
+    def zoomOut(self, range=1):
+        super(TextEditor, self).zoomOut(range)
+        self.__zoomLevel -= range
+
+    def zoomOriginal(self):
+        if self.__zoomLevel > 0:
+            self.zoomOut(self.__zoomLevel)
+        elif self.__zoomLevel < 0:
+            self.zoomIn(self.__zoomLevel)
