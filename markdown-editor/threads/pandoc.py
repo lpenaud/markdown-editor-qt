@@ -37,7 +37,7 @@ class PandocThread(Pandoc, Thread):
     def run(self):
         converted_text = self.convert_text(self.text)
         if self.intoFile:
-            self.pathname.write_text(converted_text)
+            self.pathname.write_text(converted_text, encoding='utf8')
         self.convertedText.emit(
             converted_text,
             '' if not(self.intoFile) else str(self.pathname)
