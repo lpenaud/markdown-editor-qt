@@ -19,8 +19,7 @@ A markdown editor written in Python3.7 with Qt5 and pandoc2
 TODO
 *****************
 
-- Add "about" window
-- Add thread to save file
+- Reimplement saveThread class
 - Add pandoc to preferences window
 
 *****************
