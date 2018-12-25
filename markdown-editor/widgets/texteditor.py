@@ -6,12 +6,20 @@ from PyQt5.Qt import (
     QSizePolicy,
     QTextDocument,
     QTextCursor,
-    QTimer
+    QTimer,
+    pyqtSignal
 )
 
 
 class TextEditor(QPlainTextEdit):
     """docstring for TextEditor."""
+
+    zoomSignal = pyqtSignal(int)
+
+    @staticmethod
+    def getMinZoom():
+        return -8
+
     def __init__(self, parent = None, text = '\n', tabStopDistance = 20):
         super(TextEditor, self).__init__(parent)
         self.insertPlainText(text)
@@ -22,6 +30,8 @@ class TextEditor(QPlainTextEdit):
         self.__timer.setSingleShot(True)
         self.htmlFind = '<span style="background-color: turquoise;">{}</span>'
         self.__zoomLevel = 0
+        self.__maxZoom = 500
+        self.__minZoom = TextEditor.getMinZoom()
 
     @property
     def textContent(self):
@@ -34,6 +44,36 @@ class TextEditor(QPlainTextEdit):
     @property
     def timeout(self):
         return self.__timer.timeout
+
+    @property
+    def minZoom(self):
+        return self.__minZoom
+
+    @minZoom.setter
+    def minZoom(self, minZoom):
+        err = "minZoom ({}) can't be".format(minZoom)
+        if minZoom < TextEditor.getMinZoom():
+            err += " inferior to {}"
+            raise ValueError(err.format(TextEditor.getMinZoom()))
+        if minZoom >= self.maxZoom:
+            err += " superior or equal of maxZoom {}"
+            raise ValueError(err.format(self.maxZoom))
+        self.__minZoom = minZoom
+
+    @property
+    def maxZoom(self):
+        return self.__maxZoom
+
+    @maxZoom.setter
+    def maxZoom(self, maxZoom):
+        if maxZoom <= self.minZoom:
+            raise ValueError(
+                "maxZoom ({}) can't be inferior or equal to minZoom ({})".format(
+                    maxZoom,
+                    self.minZoom
+                )
+            )
+        self.__maxZoom = maxZoom
 
     def onTextChanged(self):
         self.__timer.start(300)
@@ -52,19 +92,23 @@ class TextEditor(QPlainTextEdit):
         self.__find(text, cursor, findFlag)
         cursor.endEditBlock()
 
-    def zoomIn(self, range=1):
-        range = abs(range)
-        super(TextEditor, self).zoomIn(range)
-        self.__zoomLevel += range
+    def zoomIn(self, level=1):
+        level = abs(level)
+        if level + self.__zoomLevel < self.maxZoom:
+            super(TextEditor, self).zoomIn(level)
+            self.__zoomLevel += level
+        self.zoomSignal.emit(self.__zoomLevel)
 
-    def zoomOut(self, range=1):
-        range = abs(range)
-        super(TextEditor, self).zoomOut(range)
-        self.__zoomLevel -= range
+    def zoomOut(self, level=1):
+        level = abs(level)
+        if self.__zoomLevel - level > self.minZoom:
+            super(TextEditor, self).zoomOut(level)
+            self.__zoomLevel -= level
+        self.zoomSignal.emit(self.__zoomLevel)
 
     def zoomOriginal(self):
-        print(self.__zoomLevel)
         if self.__zoomLevel > 0:
             self.zoomOut(self.__zoomLevel)
         else:
             self.zoomIn(self.__zoomLevel)
+        self.zoomSignal.emit(self.__zoomLevel)
