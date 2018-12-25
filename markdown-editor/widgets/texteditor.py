@@ -53,15 +53,18 @@ class TextEditor(QPlainTextEdit):
         cursor.endEditBlock()
 
     def zoomIn(self, range=1):
+        range = abs(range)
         super(TextEditor, self).zoomIn(range)
         self.__zoomLevel += range
 
     def zoomOut(self, range=1):
+        range = abs(range)
         super(TextEditor, self).zoomOut(range)
         self.__zoomLevel -= range
 
     def zoomOriginal(self):
+        print(self.__zoomLevel)
         if self.__zoomLevel > 0:
             self.zoomOut(self.__zoomLevel)
-        elif self.__zoomLevel < 0:
+        else:
             self.zoomIn(self.__zoomLevel)
