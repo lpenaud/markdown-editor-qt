@@ -24,7 +24,7 @@ class MarkdownEditor(widgets.MainWindow):
     configPath = helpers.joinpath_to_cwd('config.json')
 
     def __init__(self, pathnameSrc = None):
-        super(MarkdownEditor, self).__init__('Markdown Editor', 800, 400)
+        super(MarkdownEditor, self).__init__('Markdown Editor [*]', 800, 400)
         self.box = widgets.Box(QBoxLayout.TopToBottom, self)
         self.subBox = widgets.Box(QBoxLayout.LeftToRight, self.box)
         self.textFileChooser = dialogs.TextFileChooser(self)
@@ -254,18 +254,16 @@ class MarkdownEditor(widgets.MainWindow):
 
     @property
     def documentIsSave(self):
-        return self.__documentIsSave
+        return self.isWindowModified()
 
     @documentIsSave.setter
     def documentIsSave(self, documentIsSave):
         if documentIsSave:
-            self.setWindowTitle(self.documentTitle)
+            self.setWindowModified(False)
             self.labelDocumentState.setText('Document is save')
         else:
-            if not(self.windowTitle().startswith('*')):
-                self.setWindowTitle('*' + self.windowTitle())
+            self.setWindowModified(True)
             self.labelDocumentState.setText('Document has been modified')
-        self.__documentIsSave = documentIsSave
 
     def documentIsSaveSigCb(self):
         self.documentIsSave = True
