@@ -58,6 +58,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.textEditor = widgets.TextEditor(self.subBox)
         self.textEditor.timeout.connect(self.triggeredTextTimeout)
         self.textEditor.textChanged.connect(self.triggeredTextChanged)
+        self.textEditor.zoomSignal.connect(self.textEditorZoomChanged)
         if self.pathnameSrc:
             self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
         else:
@@ -416,6 +417,15 @@ class MarkdownEditor(widgets.MainWindow):
 
     def triggeredZoomOriginal(self):
         self.textEditor.zoomOriginal()
+
+    def textEditorZoomChanged(self, zoomLevel):
+        if zoomLevel - 1 == self.textEditor.minZoom:
+            self.getAction('view-zoom-out').setEnabled(False)
+        elif zoomLevel + 1 == self.textEditor.maxZoom:
+            self.getAction('view-zoom-in').setEnabled(False)
+        else:
+            self.getAction('view-zoom-out').setEnabled(True)
+            self.getAction('view-zoom-in').setEnabled(True)
 
     def readConfig(self):
         config = helpers.serialize_json(MarkdownEditor.configPath)
