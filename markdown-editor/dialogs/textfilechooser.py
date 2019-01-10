@@ -16,7 +16,7 @@ class TextFileChooser(QFileDialog):
         self.selectNameFilter(self.__filters[0])
         self.pathname = Path.home()
         self.mode = 'r'
-        self.encoding = 'utf8'
+        self.encoding = 'utf_8'
 
     @property
     def pathname(self):

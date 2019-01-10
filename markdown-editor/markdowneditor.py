@@ -17,7 +17,6 @@ from pandoc import Pandoc
 class MarkdownEditor(widgets.MainWindow):
     """docstring for MarkdownEditor."""
 
-    documentIsSaveSig = pyqtSignal(str)
     exportDocumentSig = pyqtSignal(str, bool)
     documentTitleDefault = 'New document'
     defaultPath = helpers.joinpath_to_cwd('example', 'example.md')
@@ -48,7 +47,9 @@ class MarkdownEditor(widgets.MainWindow):
         self.pandoc.convertedText.connect(self.cbPandoc)
         self.pandoc.pathname = tempfile
 
+        self.documentIsSave = True
         self.saveThread = threads.SaveThread(self)
+        self.saveThread.writed.connect(self.documentIsSaveSigCb)
         self.saveThreading = True
 
         self.preferenceDialog = dialogs.Preferences(self)
@@ -60,7 +61,7 @@ class MarkdownEditor(widgets.MainWindow):
         self.textEditor.textChanged.connect(self.triggeredTextChanged)
         self.textEditor.zoomSignal.connect(self.textEditorZoomChanged)
         if self.pathnameSrc:
-            self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf8')
+            self.textEditor.textContent = self.pathnameSrc.read_text(encoding='utf_8')
         else:
             self.newDocument()
 
@@ -73,8 +74,6 @@ class MarkdownEditor(widgets.MainWindow):
 
         self.box.addWidget(self.subBox)
         self.setCentralWidget(self.box)
-        self.documentIsSave = True
-        self.documentIsSaveSig.connect(self.documentIsSaveSigCb)
         self.readConfig()
 
         self.addAction('file-document-new',
@@ -215,7 +214,7 @@ class MarkdownEditor(widgets.MainWindow):
         )
         self.populateMenubar('help', ('help-about',))
 
-        with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf8') as requirements:
+        with helpers.joinpath_to_cwd('requirements.txt').open(encoding='utf_8') as requirements:
             self.aboutDialog = dialogs.About(self,
                 copyright='Loïc Penaud ©',
                 programName='Markdown-Editor',
@@ -251,6 +250,7 @@ class MarkdownEditor(widgets.MainWindow):
             'separator',
             'view-refresh-preview',
         ))
+        self.triggeredRefreshPreview()
 
     @property
     def documentIsSave(self):
@@ -265,7 +265,9 @@ class MarkdownEditor(widgets.MainWindow):
             self.setWindowModified(True)
             self.labelDocumentState.setText('Document has been modified')
 
-    def documentIsSaveSigCb(self):
+    def documentIsSaveSigCb(self, res):
+        if res == -1:
+            raise self.saveThread.error
         self.documentIsSave = True
 
     def saveDocument(self, forceAs = False):
@@ -283,8 +285,9 @@ class MarkdownEditor(widgets.MainWindow):
             writable = True
 
         if writable and not(self.documentIsSave):
-            self.pathnameSrc.write_text(self.textEditor.textContent, encoding='utf8')
-            self.documentIsSaveSig.emit(str(self.pathnameSrc))
+            self.saveThread.p = self.pathnameSrc
+            self.saveThread.content = self.textEditor.textContent
+            self.saveThread.start()
 
     def openDocument(self):
         self.textFileChooser.mode = 'r'
@@ -326,9 +329,10 @@ class MarkdownEditor(widgets.MainWindow):
         self.exportDocumentSig.emit(self.textEditor.textContent, True)
 
     def triggeredTextTimeout(self):
-        self.triggeredRefreshPreview()
-        if self.saveThreading:
-            self.saveThread.start()
+        if self.documentIsSave:
+            self.triggeredRefreshPreview()
+            if self.saveThreading:
+                self.saveDocument()
 
     def pdfPrintingFinished(self, filepath, sucess):
         if sucess:
@@ -440,7 +444,7 @@ class MarkdownEditor(widgets.MainWindow):
             {
                 'document': {
                     'autosave': self.preferenceDialog.saveOption.checkBox.isChecked(),
-                    'encoding': 'utf8'
+                    'encoding': 'utf_8'
                 },
                 'pandoc': self.pandoc.get_config(),
                 'theme': self.preferenceDialog.themeChooser.comboBox.currentText()

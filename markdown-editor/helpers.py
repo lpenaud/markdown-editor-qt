@@ -17,7 +17,7 @@ def absolute_path(path):
     return Path(path).absolute()
 
 def check_if_encoding_exist(encoding):
-    return encoding in aliases.keys() or encoding in aliases.values()
+    return encoding in set(aliases.values())
 
 def joinpath(root, *other):
     return Path.joinpath(root, *other)
@@ -83,13 +83,13 @@ def get_username():
         return get_environ_var('USERNAME')
     return get_environ_var('USER')
 
-def serialize_json(pathname, encoding='utf8'):
+def serialize_json(pathname, encoding='utf_8'):
     path = Path(pathname).absolute()
     if not(path.exists()):
         raise ValueError("{} doesn't exist".format(str(path)))
     return json.loads(path.read_text(encoding=encoding), encoding=encoding)
 
-def encoding_json(pathname, obj, pretty, encoding='utf8'):
+def encoding_json(pathname, obj, pretty, encoding='utf_8'):
     path = Path(pathname).absolute()
     if pretty:
         data = json.dumps(obj, sort_keys=True, indent=4)

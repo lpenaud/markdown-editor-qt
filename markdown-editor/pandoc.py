@@ -120,13 +120,13 @@ class Pandoc(object):
         return args
 
     def convert_text(self, text, outputfile=None):
-        return pypandoc.convert_text(text, self.output_format, self.input_format, self.__generate_args(), 'utf-8', outputfile)
+        return pypandoc.convert_text(text, self.output_format, self.input_format, self.__generate_args(), 'utf_8', outputfile)
 
     def convert_file(self, inputfile, outputfile=None):
         pathname = Path(inputfile).absolute()
         if not(pathname.exists()):
             raise ValueError('{} doesn\'t exists'.format(inputfile))
-        pypandoc.convert_file(str(pathname), self.output_format, self.input_format, self.__generate_args(), 'utf-8', outputfile)
+        pypandoc.convert_file(str(pathname), self.output_format, self.input_format, self.__generate_args(), 'utf_8', outputfile)
 
     def read_config(self, config):
         self.input_format = config['format']['input']
